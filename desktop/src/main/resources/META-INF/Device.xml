@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings xmlns="http://java.sun.com/xml/ns/persistence/orm"
+                 version="2.0">
+
+    <entity class="com.olayinka.file.transfer.model.Device">
+        <table name="DEVICE"/>
+        <attributes>
+            <id name="id">
+                <column name="id" nullable="false" precision="19" unique="true"/>
+                <generated-value strategy="IDENTITY"/>
+            </id>
+
+            <basic name="name">
+                <column name="name" nullable="false" length="256"/>
+            </basic>
+            <basic name="displayName">
+                <column name="display_name" nullable="false" length="256"/>
+            </basic>
+            <basic name="macAddress">
+                <column name="mac_address" nullable="false" length="32"/>
+            </basic>
+            <basic name="deviceType">
+                <column name="device_type" nullable="false" length="50"/>
+            </basic>
+            <basic name="authHash">
+                <column name="auth_hash" length="32"/>
+            </basic>
+            <basic name="lastKnownIp">
+                <column name="last_known_ip" nullable="false" length="32"/>
+            </basic>
+            <basic name="status">
+                <column name="status" nullable="true" length="16"/>
+            </basic>
+            <basic name="lastAccess">
+                <column name="last_access" nullable="false" precision="19"/>
+            </basic>
+            <transient name="transfers"/>
+        </attributes>
+    </entity>
+</entity-mappings>

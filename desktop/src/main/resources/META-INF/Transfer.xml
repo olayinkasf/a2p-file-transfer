@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings xmlns="http://java.sun.com/xml/ns/persistence/orm"
+                 version="2.0">
+
+    <entity class="com.olayinka.file.transfer.model.Transfer">
+        <table name="TRANSFER"/>
+        <attributes>
+            <id name="id">
+                <column name="id" nullable="false" precision="19"/>
+            </id>
+            <basic name="deviceId">
+                <column name="device_id" nullable="false" precision="19" insertable="false" updatable="false"/>
+            </basic>
+            <basic name="transferType">
+                <column name="transfer_type" nullable="false" length="50"/>
+            </basic>
+            <basic name="fileName">
+                <column name="file_name" nullable="false" precision="19"/>
+            </basic>
+            <basic name="expectedSize">
+                <column name="expected_size" nullable="false" precision="19"/>
+            </basic>
+            <basic name="transferredSize">
+                <column name="transferred_size" nullable="false" precision="19"/>
+            </basic>
+            <basic name="time">
+                <column name="time" nullable="false" precision="19"/>
+            </basic>
+            <basic name="status">
+                <column name="status" nullable="true" length="16"/>
+            </basic>
+            <transient name="device"/>
+        </attributes>
+    </entity>
+</entity-mappings>

@@ -1,0 +1,41 @@
+<!--
+  ~ Copyright 2015
+  ~
+  ~     Olayinka S. Folorunso <mail@olayinkasf.com>
+  ~     http://olayinkasf.com
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<resources>
+    <string name="app.name">A2P File Transfer</string>
+    <string name="mac.address">MAC Address</string>
+    <string name="ip.address">IP Address</string>
+    <string name="ip.address.label">IP Address:</string>
+    <string name="unknown.device">Unknown Device</string>
+    <string name="error.selecting.device">Error selecting device! Please try again</string>
+    <string name="connecting">Connecting</string>
+    <string name="wait.connecting">Wait while a connection is established to</string>
+    <string name="notif.auth.success">Device successfully authenticated</string>
+    <string name="notif.file.error" formatted="false">Couldn\'t transfer file\n%s</string>
+    <string name="notif.connect.success" formatted="false">Successfully connect to device %s at %s</string>
+    <string name="notif.init" formatted="false">Wait while a connection is established to %s</string>
+    <string name="notif.request.auth">Your device wasn\'t verified. Enter the code displayed on the destination device
+        screen.
+    </string>
+    <string name="return_failed_file" formatted="false">File transfer incomplete|Connection lost while attempting to send %s. Successfully transferred %s/%s files.</string>
+    <string name="return_connection_lost" formatted="false">Connection lost|Connection lost while sending files.</string>
+    <string name="return_transfer_success" formatted="false">File transfer completed|Successfully transferred %s/%s files.</string>
+    <string name="return_auth_failed" formatted="false">Authentication failed|Failed to authenticate device. File transfer terminated</string>
+    <string name="device.name.label">Device Name:</string>
+</resources>

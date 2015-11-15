@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence xmlns="http://java.sun.com/xml/ns/persistence" version="2.0">
+
+    <persistence-unit name="A2PPU2">
+        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+        <mapping-file>META-INF/AppInfo.xml</mapping-file>
+        <mapping-file>META-INF/Device.xml</mapping-file>
+        <mapping-file>META-INF/DeviceType.xml</mapping-file>
+        <mapping-file>META-INF/Transfer.xml</mapping-file>
+        <mapping-file>META-INF/TransferType.xml</mapping-file>
+        <mapping-file>AppInfo.xml</mapping-file>
+        <mapping-file>Device.xml</mapping-file>
+        <mapping-file>DeviceType.xml</mapping-file>
+        <mapping-file>Transfer.xml</mapping-file>
+        <mapping-file>TransferType.xml</mapping-file>
+        <properties>
+            <property name="hibernate.connection.driver_class" value="org.apache.derby.jdbc.EmbeddedDriver"/>
+            <property name="hibernate.dialect" value="org.hibernate.dialect.DerbyTenSevenDialect"/>
+            <property name="hibernate.show_sql" value="true"/>
+            <property name="hibernate.format_sql" value="true"/>
+            <property name="hibernate.globally_quoted_identifiers" value="true"/>
+            <property name="hibernate.connection.url"
+                      value="jdbc:derby:C:\Users\Olayinka\.a2p-file-transfer\.storage\derby.jdbc;create=true;user=VY3DM8JatMgPi6USoUvm9PUTW6ZxKXjfQ1gV8Q3L2pPUmVjBaHauxoP8bMEpfbsedRKPORXqTI0cEJMDAa8VGctroNBMnwegJwb4ZhN;password=FkvBsZNcux06MUrFh7bHxa4TULugx1ou8HgNf24Em1n5Ku1YsWuDYideWxdDuutKB6xTAsEA"/>
+            <property name="hibernate.connection.username"/>
+            <property name="hibernate.connection.password"/>
+        </properties>
+    </persistence-unit>
+</persistence>

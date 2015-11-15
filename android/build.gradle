@@ -1,0 +1,66 @@
+import java.text.SimpleDateFormat
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:1.2.3'
+    }
+}
+apply plugin: 'com.android.application'
+
+repositories {
+    jcenter()
+}
+
+android {
+    compileSdkVersion 22
+    buildToolsVersion "22.0.1"
+
+    defaultConfig {
+        applicationId "com.olayinka.file.transfer"
+        minSdkVersion 9
+        targetSdkVersion 23
+        versionCode 1
+        versionName "1.0"
+
+
+        // Setting Preferences
+        def fileName = 'number.build'
+        def buildFile = file(fileName);
+        def dialogText = 'What have you done?'
+        def date = new Date();
+        def sdf = new SimpleDateFormat("dd/MM/YYYY kk:mm:ss:S")
+        def x = 0;
+        if (buildFile.exists()) {
+            buildFile.eachLine { line ->
+                x++;
+            }
+            buildFile.append(x + "," + sdf.format(date) + "," + dialogText + System.getProperty("line.separator"));
+        } else {
+            buildFile.write("0," + sdf.format(date) + ",Start of the project" + System.getProperty("line.separator"));
+        }
+
+        buildConfigField "long", "BUILD_NUMBER", "" + x + "L"
+        buildConfigField "long", "BUILD_TIME", "" + date.getTime() + "L"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    lintOptions {
+        abortOnError false
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile project(':filepicker')
+    compile project(':main')
+    compile 'com.melnykov:floatingactionbutton:1.1.0'
+    compile 'com.github.tony19:logback-android-core:1.1.1-4'
+    compile 'com.github.tony19:logback-android-classic:1.1.1-4'
+}

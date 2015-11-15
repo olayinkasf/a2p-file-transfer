@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence xmlns="http://java.sun.com/xml/ns/persistence" version="2.0">
+
+    <persistence-unit name="A2PPU">
+        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+        <mapping-file>META-INF/AppInfo.xml</mapping-file>
+        <mapping-file>META-INF/Device.xml</mapping-file>
+        <mapping-file>META-INF/Transfer.xml</mapping-file>
+        <properties>
+            <property name="hibernate.connection.driver_class" value="org.apache.derby.jdbc.EmbeddedDriver"/>
+            <property name="hibernate.dialect" value="org.hibernate.dialect.DerbyTenSevenDialect"/>
+            <property name="hibernate.show_sql" value="true"/>
+            <property name="hibernate.format_sql" value="true"/>
+        </properties>
+    </persistence-unit>
+</persistence>
