@@ -197,7 +197,7 @@ public class A2PClient extends AsyncTask<Uri, String, Integer> {
         }
         mThisDevice.put(AbstractAppContent.DeviceColumns.DEVICE_TYPE, AppSettings.DEVICE_TYPE.toString());
         mThisDevice.put(AbstractAppContent.DeviceColumns.NAME, deviceName);
-        mThisDevice.put(Device.Columns.DEVICE_ID_HASH, address);
+        mThisDevice.put(Device.Columns.MAC_ADDRESS, address);
     }
 
     private byte requestAuthentication() throws IOException {

@@ -20,20 +20,18 @@
 package android.olayinka.file.transfer.activity;
 
 import android.app.Activity;
-import android.content.ContentValues;
 import android.content.Intent;
 import android.olayinka.file.transfer.AppSqlHelper;
 import android.olayinka.file.transfer.Utils;
 import android.olayinka.file.transfer.adapter.DeviceAdapter;
-import android.olayinka.file.transfer.model.SQLiteDeviceProvider;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import com.olayinka.file.transfer.AbstractAppSettings;
 import com.olayinka.file.transfer.R;
 import com.olayinka.file.transfer.model.Device;
 import com.olayinka.file.transfer.model.DeviceProvider;
+import ripped.android.json.JSONObject;
 import zxing.barcode.scanning.IntentIntegrator;
 import zxing.barcode.scanning.IntentResult;
 
@@ -78,22 +76,15 @@ public class SelectDeviceActivity extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         IntentResult scanResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
         if (scanResult != null && scanResult.getContents() != null) {
-            String[] result = scanResult.getContents().split(AbstractAppSettings.SPLIT_TOKEN, 4);
-            Utils.toast(this, getString(R.string.mac_address) + ": " + result[0] + "\n"
-                    + getString(R.string.ip_address) + ": " + result[1]);
-            ContentValues values = new ContentValues();
-            values.put(Device.Columns.DEVICE_ID_HASH, result[0]);
-            values.put(Device.Columns.LAST_KNOWN_IP, result[1]);
-            values.put(Device.Columns.NAME, result[2]);
-            values.put(Device.Columns.DEVICE_TYPE, result[3]);
-            Device device = SQLiteDeviceProvider.deviceFromContentValues(values);
-
-            if(!(mDeviceProvider.updateDevice(device)|| mDeviceProvider.insertDevice(device))){
+            JSONObject object = new JSONObject(scanResult.getContents());
+            Device device = Device.deviceFromJSONObject(object);
+            Utils.toast(this, String.format(getString(R.string.scanned_device), device.getName(), device.getLastKnownIp()));
+            if (!(mDeviceProvider.updateDevice(device) || mDeviceProvider.insertDevice(device))) {
                 throw new RuntimeException("There is an unspeakable treachery here!!");
             }
 
-            if(device.getStatus().equals(Device.Status.BANNED)){
-                Utils.toast(this,"This device has been previously deleted!\nPlease undo to proceed");
+            if (device.getStatus().equals(Device.Status.BANNED)) {
+                Utils.toast(this, "This device has been previously deleted!\nPlease undo to proceed");
                 return;
             }
 

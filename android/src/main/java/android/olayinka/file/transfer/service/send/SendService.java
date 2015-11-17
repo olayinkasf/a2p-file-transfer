@@ -35,6 +35,7 @@ public class SendService extends IntentService {
     public static final String DEVICE = "device";
     public static final String DATA = "data";
     public static final String NAME = "Send Service";
+    public static final String STATE_CONNECTED = "state.connected";
 
     public SendService() {
         super(NAME);

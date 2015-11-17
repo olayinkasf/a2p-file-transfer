@@ -9,7 +9,7 @@ import com.olayinka.file.transfer.content.AbstractDevice;
 public class AppSettings extends AbstractAppSettings {
 
     public static final int FOREGROUND_SEND = 0x87654321;
-    public static final int FOREGROUND_RECEIVE = 0x98765432;
+    public static final int FOREGROUND_SERVICE = 0x98765432;
 
     public static final int NOTIF_INIT = 0x12345678;
     public static final int NOTIF_CONNECT_SUCCESS = NOTIF_INIT;
@@ -21,6 +21,8 @@ public class AppSettings extends AbstractAppSettings {
     public static final String APP_SETTINGS = "app.settings";
     public static final String LOG_APP_ACTIVITY = "log.app.activity";
     public static final String PROGRESS_VALUE = "progress.value";
+
+    public static final String WIFI_AP_STATE_ACTION = "android.net.wifi.WIFI_AP_STATE_CHANGED";
 
     public static AbstractDevice.DeviceType DEVICE_TYPE = AbstractDevice.DeviceType.MOBILE;
 }

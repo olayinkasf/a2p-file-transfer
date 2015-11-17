@@ -35,13 +35,15 @@
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
 
 
-        <android.support.v7.widget.SwitchCompat
+        <android.olayinka.file.transfer.widget.ServiceButton
+                android:clickable="true"
                 android:layout_gravity="center_vertical|end"
-                android:id="@+id/serviceSwitch"
+                android:id="@+id/serviceButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:src="@drawable/service_button"
                 android:padding="10dp"
-                android:background="#00000000"/>
+                android:background="?attr/selectableItemBackgroundBorderless"/>
 
     </android.support.v7.widget.Toolbar>
 

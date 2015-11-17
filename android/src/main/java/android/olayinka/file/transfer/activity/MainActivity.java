@@ -20,17 +20,24 @@
 package android.olayinka.file.transfer.activity;
 
 import android.app.Activity;
-import android.content.ClipData;
-import android.content.ContentValues;
-import android.content.Intent;
+import android.app.ProgressDialog;
+import android.content.*;
 import android.net.Uri;
+import android.net.wifi.WifiManager;
+import android.olayinka.file.transfer.AppSettings;
 import android.olayinka.file.transfer.AppSqlHelper;
 import android.olayinka.file.transfer.Utils;
 import android.olayinka.file.transfer.adapter.TransferAdapter;
 import android.olayinka.file.transfer.model.SQLiteDeviceProvider;
+import android.olayinka.file.transfer.service.NetworkStateBroadcastReceiver;
+import android.olayinka.file.transfer.service.receive.ReceiveService;
 import android.olayinka.file.transfer.service.send.SendService;
-import android.os.Bundle;
-import android.os.Environment;
+import android.olayinka.file.transfer.widget.ServiceButton;
+import android.os.*;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.view.Menu;
 import android.view.View;
 import android.widget.ListView;
 import com.nononsenseapps.filepicker.FilePickerActivity;
@@ -43,7 +50,7 @@ import java.util.ArrayList;
 /**
  * Created by Olayinka on 8/8/2015.
  */
-public class MainActivity extends Activity {
+public class MainActivity extends AppCompatActivity implements ServiceConnection {
     public static final int DEVICE_REQUEST_CODE = 0x4856;
     public static final int PICK_FILE_REQUEST_CODE = 0x4152;
     View.OnClickListener mSendButtonClickListener = new View.OnClickListener() {
@@ -54,6 +61,15 @@ public class MainActivity extends Activity {
     };
     ListView mLogListView;
     private DeviceProvider mDeviceProvider;
+    private NetworkStateBroadcastReceiver mBroadcastReceiver;
+    private ServiceButton mServiceButton;
+    private String mConnectionState = NetworkStateBroadcastReceiver.STATE_IMPOSSIBLE;
+    private ProgressDialog mProgressDialog;
+    private boolean mProgressShown = false;
+    private String mProgressMessage;
+    private boolean mBound;
+    private Messenger mSendServiceMessenger;
+    Messenger mMessenger = new Messenger(new IncomingHandler());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,6 +79,136 @@ public class MainActivity extends Activity {
         mLogListView = (ListView) findViewById(R.id.list);
         mLogListView.setAdapter(new TransferAdapter(this, AppSqlHelper.instance(this)));
         mDeviceProvider = AppSqlHelper.instance(this).getDeviceProvider();
+        mBroadcastReceiver = new NetworkStateBroadcastReceiver(this) {
+            @Override
+            public void publishState(String state) {
+                mConnectionState = state;
+                if (mServiceButton == null) return;
+                switch (state) {
+                    case STATE_POSSIBLE_WIFI:
+                        if (mConnectionState.equals(SendService.STATE_CONNECTED)) {
+                            mServiceButton.setState(SendService.STATE_CONNECTED);
+                        } else {
+                            mServiceButton.setState(STATE_POSSIBLE_WIFI);
+                        }
+                        break;
+                    case STATE_POSSIBLE_HOTSPOT:
+                        if (mConnectionState.equals(SendService.STATE_CONNECTED)) {
+                            mServiceButton.setState(SendService.STATE_CONNECTED);
+                        } else {
+                            mServiceButton.setState(STATE_POSSIBLE_HOTSPOT);
+                        }
+                        break;
+                    case STATE_IMPOSSIBLE_WIFI:
+                        mServiceButton.setState(STATE_IMPOSSIBLE_WIFI);
+                        break;
+                    case STATE_IMPOSSIBLE:
+                        mServiceButton.setState(STATE_IMPOSSIBLE);
+                        break;
+                }
+            }
+        };
+        initToolbar();
+        registerReceiver();
+    }
+
+    private void registerReceiver() {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION);
+        filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
+        filter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
+        filter.addAction(AppSettings.WIFI_AP_STATE_ACTION);
+        registerReceiver(mBroadcastReceiver, filter);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        // Bind to the service
+        bindService();
+        if (mProgressShown) {
+            startConnectionProgress(mProgressMessage);
+        }
+    }
+
+    private void bindService() {
+        bindService(new Intent(this, ReceiveService.class), this, Context.BIND_AUTO_CREATE);
+    }
+
+    void initToolbar() {
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        mServiceButton = (ServiceButton) toolbar.findViewById(R.id.serviceButton);
+        mServiceButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                switch (mConnectionState) {
+                    case NetworkStateBroadcastReceiver.STATE_POSSIBLE_WIFI:
+                        Utils.toast(v.getContext(), "A connection will be established on your wifi network.");
+                        startConnectionProgress("Wait while a connection is established on your wifi network.");
+                        break;
+                    case NetworkStateBroadcastReceiver.STATE_POSSIBLE_HOTSPOT:
+                        Utils.toast(v.getContext(), "A connection will be established on your mobile hotspot.");
+                        startConnectionProgress("Wait while a connection is established on your mobile hotspot.");
+                        break;
+                    case NetworkStateBroadcastReceiver.STATE_IMPOSSIBLE_WIFI:
+                        Utils.toast(v.getContext(), "Please connect to a wifi network");
+                        break;
+                    case NetworkStateBroadcastReceiver.STATE_IMPOSSIBLE:
+                        Utils.toast(v.getContext(), "Please connect to a wifi network or start a mobile hotspot");
+                        break;
+                    case SendService.STATE_CONNECTED:
+                        Message message = Message.obtain(null, ReceiveService.STOP_SERVER, 0, 0);
+                        message.replyTo = mMessenger;
+                        try {
+                            mSendServiceMessenger.send(message);
+                        } catch (RemoteException e) {
+                            e.printStackTrace();
+                        }
+                        mConnectionState = NetworkStateBroadcastReceiver.STATE_IMPOSSIBLE;
+                        unregisterReceiver(mBroadcastReceiver);
+                        registerReceiver();
+                        break;
+                }
+            }
+        });
+        setSupportActionBar(toolbar);
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setDisplayHomeAsUpEnabled(false);
+        actionBar.setDisplayShowTitleEnabled(true);
+        actionBar.setTitle(R.string.app_name);
+    }
+
+    private void startConnectionProgress(String messageText) {
+        mProgressMessage = messageText;
+        mProgressShown = false;
+        mProgressDialog = ProgressDialog.show(this, null, mProgressMessage);
+        boolean launched = false;
+        while (!launched) {
+            try {
+                Message message = Message.obtain(null, ReceiveService.LAUNCH_SERVER, 0, 0);
+                message.replyTo = mMessenger;
+                mSendServiceMessenger.send(message);
+                launched = true;
+            } catch (Throwable e) {
+                e.printStackTrace();
+                bindService();
+            }
+        }
+    }
+
+    class IncomingHandler extends Handler {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case ReceiveService.LAUNCHED_SERVER:
+                    mConnectionState = SendService.STATE_CONNECTED;
+                    mServiceButton.setState(SendService.STATE_CONNECTED);
+                    dismissProgressDialog();
+                    break;
+                default:
+                    super.handleMessage(msg);
+            }
+        }
     }
 
     Uri[] mWaitingUris;
@@ -131,6 +277,55 @@ public class MainActivity extends Activity {
         i.putExtra(FilePickerActivity.EXTRA_START_PATH, Environment.getExternalStorageDirectory().getPath());
 
         startActivityForResult(i, PICK_FILE_REQUEST_CODE);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(mBroadcastReceiver);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onStop();
+
+    }
+
+    @Override
+    public void onServiceConnected(ComponentName className, IBinder service) {
+        mSendServiceMessenger = new Messenger(service);
+        mBound = true;
+    }
+
+    @Override
+    public void onServiceDisconnected(ComponentName className) {
+        mSendServiceMessenger = null;
+        mBound = false;
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        // Unbind from the service
+        if (mBound) {
+            unbindService(this);
+            mBound = false;
+        }
+        dismissProgressDialog();
+    }
+
+    private void dismissProgressDialog() {
+        if (mProgressDialog != null) {
+            mProgressDialog.dismiss();
+            mProgressDialog = null;
+            mProgressShown = true;
+        }
     }
 }
 

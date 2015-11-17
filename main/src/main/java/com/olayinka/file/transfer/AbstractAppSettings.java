@@ -39,7 +39,6 @@ public class AbstractAppSettings {
 
     public static final int BUFFER_SIZE = 4096;
 
-    public static final java.lang.String SPLIT_TOKEN = "@@A2P@@";
     public static final String AUTH_RESULT = "auth.result";
 
 

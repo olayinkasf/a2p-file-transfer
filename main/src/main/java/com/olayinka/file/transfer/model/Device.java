@@ -143,9 +143,9 @@ public class Device extends AbstractDevice {
         object.put(Columns.NAME, name);
         object.put(Columns.AUTH_HASH, authHash);
         object.put(Columns.LAST_KNOWN_IP, lastKnownIp);
-        object.put(Columns.ACTIVE, status);
+        object.put(Columns.STATUS, status);
         object.put(Columns._ID, id);
-        object.put(Columns.DEVICE_ID_HASH, macAddress);
+        object.put(Columns.MAC_ADDRESS, macAddress);
         object.put(Columns.DEVICE_TYPE, deviceType);
         object.put(Columns.LAST_ACCESS, lastAccess);
         return object.toString();
@@ -159,13 +159,13 @@ public class Device extends AbstractDevice {
 
             Object value = object.get(key);
             switch (key) {
-                case Device.Columns.ACTIVE:
+                case Device.Columns.STATUS:
                     device.status = Short.valueOf(value.toString());
                     break;
                 case Device.Columns.AUTH_HASH:
                     device.authHash = (String) value;
                     break;
-                case Device.Columns.DEVICE_ID_HASH:
+                case Device.Columns.MAC_ADDRESS:
                     device.macAddress = (String) value;
                     break;
                 case Device.Columns.DEVICE_TYPE:

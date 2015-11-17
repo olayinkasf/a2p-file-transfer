@@ -19,7 +19,7 @@
 
 <resources>
     <string name="app.name">A2P File Transfer</string>
-    <string name="mac.address">MAC Address</string>
+    <string name="scanned.device" formatted="false">Device name: %s\nIP Address: %s</string>
     <string name="ip.address">IP Address</string>
     <string name="ip.address.label">IP Address:</string>
     <string name="unknown.device">Unknown Device</string>
@@ -38,4 +38,5 @@
     <string name="return_transfer_success" formatted="false">File transfer completed|Successfully transferred %s/%s files.</string>
     <string name="return_auth_failed" formatted="false">Authentication failed|Failed to authenticate device. File transfer terminated</string>
     <string name="device.name.label">Device Name:</string>
+    <string name="action.service">Service</string>
 </resources>

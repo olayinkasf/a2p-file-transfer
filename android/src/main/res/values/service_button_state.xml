@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="service">
+        <attr name="state_connected" format="boolean"/>
+        <attr name="state_possible_wifi" format="boolean"/>
+        <attr name="state_possible_hotspot" format="boolean"/>
+        <attr name="state_impossible_wifi" format="boolean"/>
+        <attr name="state_impossible" format="boolean"/>
+    </declare-styleable>
+</resources>

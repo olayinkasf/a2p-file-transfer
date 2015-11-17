@@ -45,7 +45,7 @@ public class SQLiteDeviceProvider implements DeviceProvider {
     public Device findDeviceByMacAddress(String hashId) {
         SQLiteDatabase database = mSqlHelper.getWritableDatabase();
 
-        String where = AbstractAppContent.DeviceColumns.DEVICE_ID_HASH + " = ?";
+        String where = AbstractAppContent.DeviceColumns.MAC_ADDRESS + " = ?";
         String[] whereArgs = new String[]{hashId};
         Cursor cursor = database.query(Device.TABLE, null, where, whereArgs, null, null, null);
 
@@ -132,9 +132,9 @@ public class SQLiteDeviceProvider implements DeviceProvider {
 
     static public ContentValues contentValuesForDevice(Device device) {
         ContentValues contentValues = new ContentValues();
-        if (device.getStatus() != null) contentValues.put(Device.Columns.ACTIVE, device.getStatus());
+        if (device.getStatus() != null) contentValues.put(Device.Columns.STATUS, device.getStatus());
         if (device.getAuthHash() != null) contentValues.put(Device.Columns.AUTH_HASH, device.getAuthHash());
-        if (device.getMacAddress() != null) contentValues.put(Device.Columns.DEVICE_ID_HASH, device.getMacAddress());
+        if (device.getMacAddress() != null) contentValues.put(Device.Columns.MAC_ADDRESS, device.getMacAddress());
         if (device.getDeviceType() != null) contentValues.put(Device.Columns.DEVICE_TYPE, device.getDeviceType());
         if (device.getLastAccess() != null) contentValues.put(Device.Columns.LAST_ACCESS, device.getLastAccess());
         if (device.getLastKnownIp() != null) contentValues.put(Device.Columns.LAST_KNOWN_IP, device.getLastKnownIp());
@@ -146,9 +146,9 @@ public class SQLiteDeviceProvider implements DeviceProvider {
 
     public static Device deviceFromContentValues(ContentValues values) {
         Device device = new Device();
-        device.setStatus(values.getAsShort(Device.Columns.ACTIVE));
+        device.setStatus(values.getAsShort(Device.Columns.STATUS));
         device.setAuthHash(values.getAsString(Device.Columns.AUTH_HASH));
-        device.setMacAddress(values.getAsString(Device.Columns.DEVICE_ID_HASH));
+        device.setMacAddress(values.getAsString(Device.Columns.MAC_ADDRESS));
         device.setDeviceType(values.getAsString(Device.Columns.DEVICE_TYPE));
         device.setLastAccess(values.getAsLong(Device.Columns.LAST_ACCESS));
         device.setLastKnownIp(values.getAsString(Device.Columns.LAST_KNOWN_IP));

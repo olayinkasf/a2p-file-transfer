@@ -68,6 +68,10 @@ public class A2PServerTask extends AsyncTask<String, Object, Integer> {
         super.onPostExecute(integer);
     }
 
+    public void disconnect() {
+        mA2PServer.disconnect();
+    }
+
     class A2PServerStub extends A2PServer {
 
         public A2PServerStub(A2PServerListener context) {

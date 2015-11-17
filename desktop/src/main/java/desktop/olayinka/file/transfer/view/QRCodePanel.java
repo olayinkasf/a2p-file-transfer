@@ -29,15 +29,21 @@ import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.olayinka.file.transfer.Utils;
+import com.olayinka.file.transfer.model.Device;
 import desktop.olayinka.file.transfer.AppContext;
 import desktop.olayinka.file.transfer.AppSettings;
+import ripped.android.json.JSONObject;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.security.NoSuchAlgorithmException;
+
+import static com.olayinka.file.transfer.Utils.hash;
 
 public class QRCodePanel extends JPanel {
 
@@ -66,23 +72,19 @@ public class QRCodePanel extends JPanel {
         try {
             NetworkInterface network = NetworkInterface.getByInetAddress(inetAddress);
             macAddress = Utils.macToString(network.getHardwareAddress());
-        } catch (SocketException e) {
-            e.printStackTrace();
-            macAddress = "";
-        }
-        try {
-            String toEncode = macAddress + AppSettings.SPLIT_TOKEN
-                    + inetAddress.getHostAddress() + AppSettings.SPLIT_TOKEN
-                    + mContext.getSystemProperties().getName() + AppSettings.SPLIT_TOKEN
-                    + AppSettings.DEVICE_TYPE;
 
-            result = new MultiFormatWriter().encode(toEncode,
+            JSONObject object = new JSONObject();
+            object.put(Device.Columns.MAC_ADDRESS, hash(macAddress));
+            object.put(Device.Columns.LAST_KNOWN_IP, inetAddress.getHostAddress());
+            object.put(Device.Columns.NAME, mContext.getSystemProperties().getName());
+            object.put(Device.Columns.DEVICE_TYPE, AppSettings.DEVICE_TYPE);
+
+            result = new MultiFormatWriter().encode(object.toString(),
                     BarcodeFormat.QR_CODE, AppSettings.STATUS_BAR_HEIGHT - 20, AppSettings.STATUS_BAR_HEIGHT - 20, null);
             image = MatrixToImageWriter.toBufferedImage(result);
-        } catch (IllegalArgumentException iae) {
-            // Unsupported format
-        } catch (WriterException e) {
+        } catch (IllegalArgumentException | WriterException | UnsupportedEncodingException | NoSuchAlgorithmException | SocketException e) {
             e.printStackTrace();
+            System.exit(1);
         }
         repaint();
     }

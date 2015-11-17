@@ -42,13 +42,13 @@ public class AbstractAppContent {
     public static class DeviceColumns {
         public static final String _ID = AbstractAppContent._ID;
         public static final String NAME = "name";
-        public static final String DEVICE_ID_HASH = "mac_address";
+        public static final String DISPLAY_NAME = "display_name";
+        public static final String MAC_ADDRESS = "mac_address";
         public static final String DEVICE_TYPE = "device_type";
         public static final String AUTH_HASH = "auth_hash";
         public static final String LAST_KNOWN_IP = "last_known_ip";
-        public static final String ACTIVE = "active";
+        public static final String STATUS = "status";
         public static final String LAST_ACCESS = "last_access";
-        public static final String DISPLAY_NAME = "display_name";
     }
 
 }

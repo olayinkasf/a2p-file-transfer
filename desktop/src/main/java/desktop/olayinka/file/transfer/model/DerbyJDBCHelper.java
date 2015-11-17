@@ -143,7 +143,6 @@ public class DerbyJDBCHelper {
     private JDBCDeviceProvider deviceProvider;
 
     public void shutdown() {
-
     }
 
     public static DerbyJDBCHelper instance() {

@@ -64,9 +64,13 @@ public class AppContext extends WindowAdapter implements A2PServerListener {
 
     @Override
     public void windowClosing(WindowEvent e) {
-        disconnect();
-        mJDBCHelper.shutdown();
-        super.windowClosing(e);
+        try {
+            disconnect();
+            mJDBCHelper.shutdown();
+            super.windowClosing(e);
+        } catch (Throwable ignored) {
+        }
+        System.exit(0);
     }
 
     public boolean isActive() {

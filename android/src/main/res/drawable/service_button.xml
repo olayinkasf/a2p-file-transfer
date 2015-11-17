@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item app:state_connected="true" android:drawable="@drawable/ic_wifi_tethering_white_24dp"/>
+    <item app:state_possible_wifi="true" android:drawable="@drawable/ic_wifi_black_24dp"/>
+    <item app:state_possible_hotspot="true" android:drawable="@drawable/ic_wifi_tethering_black_24dp"/>
+    <item app:state_impossible_wifi="true" android:drawable="@drawable/ic_signal_wifi_off_black_24dp"/>
+    <item app:state_impossible="true" android:drawable="@drawable/ic_portable_wifi_off_black_24dp"/>
+</selector>
