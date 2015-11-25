@@ -9,6 +9,6 @@ build/
 gradle/
 gradlew*
 .*/tmp/*
-
-
+*.log
 tmp/
+
