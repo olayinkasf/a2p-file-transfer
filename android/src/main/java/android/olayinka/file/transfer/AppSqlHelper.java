@@ -40,9 +40,9 @@ import java.util.List;
  */
 public class AppSqlHelper extends SQLiteOpenHelper {
 
+    public static final String APP_INFO = "app_info";
     private static final String DATABASE_NAME = "smart_tone";
     private static final int DATABASE_VERSION = 9;
-    public static final String APP_INFO = "app_info";
     private static AppSqlHelper sInstance;
     private final Context mContext;
     private final SQLiteDeviceProvider mDeviceProvider = new SQLiteDeviceProvider(this);
@@ -51,10 +51,6 @@ public class AppSqlHelper extends SQLiteOpenHelper {
     public AppSqlHelper(Context context) {
         super(context, AppSqlHelper.DATABASE_NAME, null, AppSqlHelper.DATABASE_VERSION);
         mContext = context;
-    }
-
-    public SQLiteDeviceProvider getDeviceProvider() {
-        return mDeviceProvider;
     }
 
     public static AppSqlHelper instance(Context context) {
@@ -71,6 +67,10 @@ public class AppSqlHelper extends SQLiteOpenHelper {
         }
         cursor.close();
         throw new RuntimeException("Must return a row");
+    }
+
+    public SQLiteDeviceProvider getDeviceProvider() {
+        return mDeviceProvider;
     }
 
     @Override

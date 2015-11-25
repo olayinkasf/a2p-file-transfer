@@ -1,1 +1,2 @@
-include ':android', ':filepicker', ':main', ':desktop'
+rootProject.name = 'a2p-file-transfer'
+include ':main', ':desktop', ':filepicker', 'android'

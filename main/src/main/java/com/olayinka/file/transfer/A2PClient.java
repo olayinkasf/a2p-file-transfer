@@ -46,7 +46,7 @@ public class A2PClient {
         mOutputStream = new DataOutputStream(mSocket.getOutputStream());
         mInputStream = new DataInputStream(mSocket.getInputStream());
         mServer = server;
-        mIpAddress = client.getRemoteSocketAddress().toString().split("\\/")[0];
+        mIpAddress = client.getInetAddress().getHostAddress();
         mId = (int) (System.nanoTime() % Integer.MAX_VALUE);
     }
 
@@ -79,24 +79,7 @@ public class A2PClient {
 
             } catch (Exception e) {
                 e.printStackTrace();
-
-                try {
-                    mInputStream.close();
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                }
-                try {
-                    mOutputStream.flush();
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                }
-                try {
-                    mSocket.close();
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                }
-                mServer.dispatchMessage(A2PServer.CLIENT_READ_FAIL, "Couldn't read data from " + mIpAddress + ", please reconnect!", e);
-                mServer.updateStatus(this, false);
+                disconnect(e);
                 return;
             }
         }
@@ -116,6 +99,37 @@ public class A2PClient {
 
     public Socket getSocket() {
         return mSocket;
+    }
+
+    public void disconnect(Exception e) {
+
+        try {
+            mInputStream.close();
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }
+        try {
+            mOutputStream.flush();
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }
+        try {
+            mSocket.shutdownInput();
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }
+        try {
+            mSocket.shutdownOutput();
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }
+        try {
+            mSocket.close();
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }
+        mServer.dispatchMessage(A2PServer.CLIENT_READ_FAIL, "Couldn't read data from " + mIpAddress + ", please reconnect!", e);
+        mServer.updateStatus(this, false);
     }
 
     public interface ListenerProvider {

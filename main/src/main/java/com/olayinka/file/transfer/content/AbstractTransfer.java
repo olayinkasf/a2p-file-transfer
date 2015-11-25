@@ -12,8 +12,10 @@ public class AbstractTransfer {
     }
 
     public static class Status {
-        public static final Short ACTIVE = 0;
+        public static final Short FINISHED = 0;
         public static final Short ARCHIVED = 1;
+        public static final Short FAILED = 2;
+        public static final Short NO_INIT = 3;
     }
 
     public static class Columns extends AbstractAppContent.TransferColumns {

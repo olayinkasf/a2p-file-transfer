@@ -20,6 +20,34 @@ public class SQLiteDeviceProvider implements DeviceProvider {
         this.mSqlHelper = mSqlHelper;
     }
 
+    static public ContentValues contentValuesForDevice(Device device) {
+        ContentValues contentValues = new ContentValues();
+        if (device.getStatus() != null) contentValues.put(Device.Columns.STATUS, device.getStatus());
+        if (device.getAuthHash() != null) contentValues.put(Device.Columns.AUTH_HASH, device.getAuthHash());
+        if (device.getMacAddress() != null) contentValues.put(Device.Columns.MAC_ADDRESS, device.getMacAddress());
+        if (device.getDeviceType() != null) contentValues.put(Device.Columns.DEVICE_TYPE, device.getDeviceType());
+        if (device.getLastAccess() != null) contentValues.put(Device.Columns.LAST_ACCESS, device.getLastAccess());
+        if (device.getLastKnownIp() != null) contentValues.put(Device.Columns.LAST_KNOWN_IP, device.getLastKnownIp());
+        if (device.getName() != null) contentValues.put(Device.Columns.NAME, device.getName());
+        if (device.getDisplayName() != null) contentValues.put(Device.Columns.NAME, device.getDisplayName());
+        if (device.getId() != null) contentValues.put(Device.Columns._ID, device.getId());
+        return contentValues;
+    }
+
+    public static Device deviceFromContentValues(ContentValues values) {
+        Device device = new Device();
+        device.setStatus(values.getAsShort(Device.Columns.STATUS));
+        device.setAuthHash(values.getAsString(Device.Columns.AUTH_HASH));
+        device.setMacAddress(values.getAsString(Device.Columns.MAC_ADDRESS));
+        device.setDeviceType(values.getAsString(Device.Columns.DEVICE_TYPE));
+        device.setLastAccess(values.getAsLong(Device.Columns.LAST_ACCESS));
+        device.setLastKnownIp(values.getAsString(Device.Columns.LAST_KNOWN_IP));
+        device.setName(values.getAsString(Device.Columns.NAME));
+        device.setDisplayName(values.getAsString(Device.Columns.DISPLAY_NAME));
+        device.setId(values.getAsLong(Device.Columns._ID));
+        return device;
+    }
+
     @Override
     public Device findDeviceById(Long id) {
         SQLiteDatabase database = mSqlHelper.getWritableDatabase();
@@ -70,7 +98,7 @@ public class SQLiteDeviceProvider implements DeviceProvider {
     public boolean deleteDevice(Device device) {
         Device tmpDevice = findDeviceByMacAddress(device.getMacAddress());
 
-        if(tmpDevice == null) return false;
+        if (tmpDevice == null) return false;
 
         device.merge(tmpDevice);
 
@@ -92,7 +120,7 @@ public class SQLiteDeviceProvider implements DeviceProvider {
     public boolean insertDevice(Device device) {
         Device tmpDevice = findDeviceByMacAddress(device.getMacAddress());
 
-        if(tmpDevice != null) return false;
+        if (tmpDevice != null) return false;
 
         SQLiteDatabase database = mSqlHelper.getWritableDatabase();
 
@@ -113,7 +141,7 @@ public class SQLiteDeviceProvider implements DeviceProvider {
     public boolean updateDevice(Device device) {
         Device tmpDevice = findDeviceByMacAddress(device.getMacAddress());
 
-        if(tmpDevice == null) return false;
+        if (tmpDevice == null) return false;
 
         device.merge(tmpDevice);
 
@@ -128,33 +156,5 @@ public class SQLiteDeviceProvider implements DeviceProvider {
         database.endTransaction();
 
         return res <= 1;
-    }
-
-    static public ContentValues contentValuesForDevice(Device device) {
-        ContentValues contentValues = new ContentValues();
-        if (device.getStatus() != null) contentValues.put(Device.Columns.STATUS, device.getStatus());
-        if (device.getAuthHash() != null) contentValues.put(Device.Columns.AUTH_HASH, device.getAuthHash());
-        if (device.getMacAddress() != null) contentValues.put(Device.Columns.MAC_ADDRESS, device.getMacAddress());
-        if (device.getDeviceType() != null) contentValues.put(Device.Columns.DEVICE_TYPE, device.getDeviceType());
-        if (device.getLastAccess() != null) contentValues.put(Device.Columns.LAST_ACCESS, device.getLastAccess());
-        if (device.getLastKnownIp() != null) contentValues.put(Device.Columns.LAST_KNOWN_IP, device.getLastKnownIp());
-        if (device.getName() != null) contentValues.put(Device.Columns.NAME, device.getName());
-        if (device.getDisplayName() != null) contentValues.put(Device.Columns.NAME, device.getDisplayName());
-        if (device.getId() != null) contentValues.put(Device.Columns._ID, device.getId());
-        return contentValues;
-    }
-
-    public static Device deviceFromContentValues(ContentValues values) {
-        Device device = new Device();
-        device.setStatus(values.getAsShort(Device.Columns.STATUS));
-        device.setAuthHash(values.getAsString(Device.Columns.AUTH_HASH));
-        device.setMacAddress(values.getAsString(Device.Columns.MAC_ADDRESS));
-        device.setDeviceType(values.getAsString(Device.Columns.DEVICE_TYPE));
-        device.setLastAccess(values.getAsLong(Device.Columns.LAST_ACCESS));
-        device.setLastKnownIp(values.getAsString(Device.Columns.LAST_KNOWN_IP));
-        device.setName(values.getAsString(Device.Columns.NAME));
-        device.setDisplayName(values.getAsString(Device.Columns.DISPLAY_NAME));
-        device.setId(values.getAsLong(Device.Columns._ID));
-        return device;
     }
 }

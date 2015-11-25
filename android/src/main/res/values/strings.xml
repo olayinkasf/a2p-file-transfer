@@ -33,10 +33,24 @@
     <string name="notif.request.auth">Your device wasn\'t verified. Enter the code displayed on the destination device
         screen.
     </string>
-    <string name="return_failed_file" formatted="false">File transfer incomplete|Connection lost while attempting to send %s. Successfully transferred %s/%s files.</string>
-    <string name="return_connection_lost" formatted="false">Connection lost|Connection lost while sending files.</string>
-    <string name="return_transfer_success" formatted="false">File transfer completed|Successfully transferred %s/%s files.</string>
-    <string name="return_auth_failed" formatted="false">Authentication failed|Failed to authenticate device. File transfer terminated</string>
+    <string name="return_failed_file" formatted="false">File transfer incomplete|Connection lost while attempting to
+        send %s. Successfully transferred %s/%s files.
+    </string>
+    <string name="return_connection_lost" formatted="false">Connection lost|Connection lost while sending files.
+    </string>
+    <string name="return_transfer_success" formatted="false">File transfer completed|Successfully transferred %s/%s
+        files.
+    </string>
+    <string name="return_auth_failed" formatted="false">Authentication failed|Failed to authenticate device. File
+        transfer terminated
+    </string>
     <string name="device.name.label">Device Name:</string>
     <string name="action.service">Service</string>
+    <string name="device.info">Device Info</string>
+    <string name="device.name.disclaimer">This is not your username or pin. This name will be visible to all the devices
+        that scan your QR code.
+    </string>
+    <string name="not_connected">You\'re not connected to any network</string>
+    <string name="select.device">Select Device</string>
+    <string name="no_activity_found">No application found to open file</string>
 </resources>

@@ -13,14 +13,12 @@ import android.olayinka.file.transfer.Utils;
  * Created by Olayinka on 11/17/2015.
  */
 public abstract class NetworkStateBroadcastReceiver extends BroadcastReceiver {
-    private WifiManager mWifiManager;
-    ConnectivityManager mConnectivityManager;
-
-
     public static final String STATE_POSSIBLE_WIFI = "state.possible.wifi";
     public static final String STATE_POSSIBLE_HOTSPOT = "state.possible.hotspot";
     public static final String STATE_IMPOSSIBLE_WIFI = "state.impossible.wifi";
     public static final String STATE_IMPOSSIBLE = "state.impossible";
+    ConnectivityManager mConnectivityManager;
+    private WifiManager mWifiManager;
 
 
     public NetworkStateBroadcastReceiver(Context context) {

@@ -12,13 +12,12 @@ import com.olayinka.file.transfer.R;
  */
 public class ServiceButton extends ImageButton {
 
-    private String mState = NetworkStateBroadcastReceiver.STATE_IMPOSSIBLE;
-
     private static final int[] STATE_CONNECTED = {R.attr.state_connected};
     private static final int[] STATE_POSSIBLE_WIFI = {R.attr.state_possible_wifi};
     private static final int[] STATE_POSSIBLE_HOTSPOT = {R.attr.state_possible_hotspot};
     private static final int[] STATE_IMPOSSIBLE_WIFI = {R.attr.state_impossible_wifi};
     private static final int[] STATE_IMPOSSIBLE = {R.attr.state_impossible};
+    private String mState = NetworkStateBroadcastReceiver.STATE_IMPOSSIBLE;
 
     public ServiceButton(Context context) {
         super(context);
@@ -57,12 +56,12 @@ public class ServiceButton extends ImageButton {
         return drawableState;
     }
 
+    public String getState() {
+        return mState;
+    }
+
     public void setState(String mState) {
         this.mState = mState;
         refreshDrawableState();
-    }
-
-    public String getState() {
-        return mState;
     }
 }

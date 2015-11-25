@@ -19,7 +19,7 @@ import java.io.IOException;
 
 /**
  * Thrown when a reader encounters malformed JSON. Some syntax errors can be
- * ignored by calling {@link JsonReader#setLenient(boolean)}.
+ * ignored by calling .
  */
 public final class MalformedJSONException extends IOException {
 

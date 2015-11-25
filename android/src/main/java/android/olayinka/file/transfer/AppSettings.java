@@ -23,6 +23,7 @@ public class AppSettings extends AbstractAppSettings {
     public static final String PROGRESS_VALUE = "progress.value";
 
     public static final String WIFI_AP_STATE_ACTION = "android.net.wifi.WIFI_AP_STATE_CHANGED";
+    public static final String LAST_ENCODED = "last.encoded";
 
     public static AbstractDevice.DeviceType DEVICE_TYPE = AbstractDevice.DeviceType.MOBILE;
 }

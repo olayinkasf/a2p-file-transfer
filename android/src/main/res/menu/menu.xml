@@ -2,6 +2,6 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
             app:showAsAction="never"
-            android:id="@+id/serviceButton"
-            android:title="@string/action.service"/>
+            android:id="@+id/deviceInfo"
+            android:title="@string/device.info"/>
 </menu>

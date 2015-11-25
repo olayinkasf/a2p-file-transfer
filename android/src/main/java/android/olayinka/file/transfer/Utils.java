@@ -26,23 +26,18 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.Point;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.WindowManager;
-import android.widget.ImageView;
 import android.widget.Toast;
 import com.olayinka.file.transfer.model.Device;
-import org.apache.commons.codec.binary.Hex;
 import ripped.android.json.JSONArray;
-import ripped.android.json.JSONException;
 
 import java.io.*;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -50,28 +45,13 @@ import java.util.Map;
 /**
  * Created by Olayinka on 4/12/2015.
  */
-public class Utils extends com.olayinka.file.transfer.Utils{
+public class Utils extends com.olayinka.file.transfer.Utils {
     public static final String ACTIVE_VALUE = "active.value";
     public static final String TEXT_VALUE = "text.value";
     public static final String APP_PACKAGE_NAME = "com.olayinka.smart.tone";
     public static Map<String, String> VAR_MAP = new HashMap<>(10);
     private static Toast sAppToast;
     private static Bitmap sCachedBitmap;
-
-    public static void squareImageView(Context mContext, ImageView imageView) {
-        int width = 0;
-        WindowManager wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
-        Display display = wm.getDefaultDisplay();
-        if (hasHoneycombMR2()) {
-            Point size = new Point();
-            display.getSize(size);
-            width = size.x;
-        } else {
-            width = display.getWidth();  // Deprecated
-        }
-        imageView.getLayoutParams().width = width;
-        imageView.getLayoutParams().height = width;
-    }
 
     public static boolean hasFroyo() {
         // Can use static final constants like FROYO, declared in later versions
@@ -109,16 +89,6 @@ public class Utils extends com.olayinka.file.transfer.Utils{
 
     public static boolean hasLollipop() {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP;
-    }
-
-    public static String format(String text, JSONArray vars) throws JSONException {
-        String[] varVals = new String[vars.length()];
-
-        for (int i = 0; i < vars.length(); i++) {
-            varVals[i] = VAR_MAP.get(vars.getString(i).trim());
-        }
-
-        return String.format(text, varVals);
     }
 
     public static String getRawString(Context context, int resourceId) {
@@ -206,4 +176,15 @@ public class Utils extends com.olayinka.file.transfer.Utils{
         return device.getName() + "<" + device.getLastKnownIp() + ">";
     }
 
+    /* Checks if external storage is available for read and write */
+    public static boolean isExternalStorageWritable() {
+        return Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState());
+    }
+
+    /* Checks if external storage is available to at least read */
+    public static boolean isExternalStorageReadable() {
+        String state = Environment.getExternalStorageState();
+        return Environment.MEDIA_MOUNTED.equals(state) ||
+                Environment.MEDIA_MOUNTED_READ_ONLY.equals(state);
+    }
 }

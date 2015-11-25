@@ -397,7 +397,7 @@ public final class JSONReader implements Closeable {
     }
 
     /**
-     * Returns the next token, a {@link JsonToken#NAME property name}, and
+     * Returns the next token, a , and
      * consumes it.
      *
      * @return
@@ -415,7 +415,7 @@ public final class JSONReader implements Closeable {
     }
 
     /**
-     * Returns the {@link JsonToken#STRING string} value of the next token,
+     * Returns the  value of the next token,
      * consuming it. If the next token is a number, this method will return its
      * string form.
      *
@@ -436,7 +436,7 @@ public final class JSONReader implements Closeable {
     }
 
     /**
-     * Returns the {@link JsonToken#BOOLEAN boolean} value of the next token,
+     * Returns the  value of the next token,
      * consuming it.
      *
      * @return
@@ -473,7 +473,7 @@ public final class JSONReader implements Closeable {
     }
 
     /**
-     * Returns the {@link JsonToken#NUMBER double} value of the next token,
+     * Returns the  value of the next token,
      * consuming it. If the next token is a string, this method will attempt to
      * parse it as a double using {@link Double#parseDouble(String)}.
      *
@@ -491,7 +491,7 @@ public final class JSONReader implements Closeable {
     }
 
     /**
-     * Returns the {@link JsonToken#NUMBER long} value of the next token,
+     * Returns the  value of the next token,
      * consuming it. If the next token is a string, this method will attempt to
      * parse it as a long. If the next token's numeric value cannot be exactly
      * represented by a Java {@code long}, this method throws.
@@ -522,7 +522,7 @@ public final class JSONReader implements Closeable {
     }
 
     /**
-     * Returns the {@link JsonToken#NUMBER int} value of the next token,
+     * Returns the  value of the next token,
      * consuming it. If the next token is a string, this method will attempt to
      * parse it as an int. If the next token's numeric value cannot be exactly
      * represented by a Java {@code int}, this method throws.

@@ -23,41 +23,46 @@ import android.olayinka.file.transfer.AsyncTask;
 import com.olayinka.file.transfer.A2PClient;
 import com.olayinka.file.transfer.A2PServer;
 import com.olayinka.file.transfer.A2PServerListener;
+import com.olayinka.file.transfer.exception.WeakReferenceException;
 
+import java.lang.ref.WeakReference;
 import java.util.List;
 
-/**
- * Created by Olayinka on 7/27/2015.
- */
-public class A2PServerTask extends AsyncTask<String, Object, Integer> {
+public class A2PServerTask extends AsyncTask<String, Object, Integer> implements A2PServerListener {
 
     private static final String PROGRESS_EXIT = "msg.exit";
     private static final String PROGRESS_MSG = "msg.no.exit";
-    final Context mContext;
+    final WeakReference<Context> mContext;
     final A2PServerStub mA2PServer;
 
     public A2PServerTask(Context context) {
-        mA2PServer = new A2PServerStub((A2PServerListener) context);
-        this.mContext = context;
+        mA2PServer = new A2PServerStub(this);
+        this.mContext = new WeakReference<>(context);
     }
 
     @Override
     protected Integer doInBackground(String... params) {
         mA2PServer.run();
+        mA2PServer.disconnect();
         return null;
     }
 
     @Override
     protected void onProgressUpdate(Object... values) {
         if (mA2PServer.getListeners() != null) {
+            A2PServerListener listener = null;
+            try {
+                listener = (A2PServerListener) getContext();
+            } catch (WeakReferenceException e) {
+                e.printStackTrace();
+                return;
+            }
             switch ((String) values[0]) {
                 case PROGRESS_EXIT:
-                    for (A2PServerListener listener : mA2PServer.getListeners())
-                        listener.exit((String) values[1], (String) values[2], (Exception) values[3]);
+                    listener.exit((String) values[1], (String) values[2], (Exception) values[3]);
                     break;
                 case PROGRESS_MSG:
-                    for (A2PServerListener listener : mA2PServer.getListeners())
-                        listener.message((String) values[1], (String) values[2], (Exception) values[3]);
+                    listener.message((String) values[1], (String) values[2], (Exception) values[3]);
                     break;
             }
         }
@@ -68,7 +73,17 @@ public class A2PServerTask extends AsyncTask<String, Object, Integer> {
         super.onPostExecute(integer);
     }
 
-    public void disconnect() {
+    @Override
+    public void exit(String code, String message, Exception e) {
+        publishProgress(PROGRESS_EXIT, code, message, e);
+    }
+
+    @Override
+    public void message(String code, String message, Exception e) {
+        publishProgress(PROGRESS_MSG, code, message, e);
+    }
+
+    public void exit() {
         mA2PServer.disconnect();
     }
 
@@ -80,17 +95,23 @@ public class A2PServerTask extends AsyncTask<String, Object, Integer> {
 
         @Override
         public void dispatchExitMessage(String code, String message, Exception e) {
-            publishProgress(PROGRESS_EXIT, code, message, e);
+            exit(code, message, e);
         }
 
         @Override
         public void dispatchMessage(String code, String message, Exception e) {
-            publishProgress(PROGRESS_MSG, code, message, e);
+            message(code, message, e);
         }
 
         @Override
         protected void startClient(A2PClient a2PClient) {
-            A2PClientTask a2PClientTask = new A2PClientTask(mContext, a2PClient);
+            A2PClientTask a2PClientTask = null;
+            try {
+                a2PClientTask = new A2PClientTask(getContext(), a2PClient);
+            } catch (WeakReferenceException e) {
+                e.printStackTrace();
+                return;
+            }
             a2PClient.setListenerProvider(a2PClientTask);
             a2PClientTask.executeNow();
         }
@@ -101,6 +122,14 @@ public class A2PServerTask extends AsyncTask<String, Object, Integer> {
 
     }
 
+    Context getContext() throws WeakReferenceException {
+        Context context = mContext.get();
+        if (context == null) {
+            mA2PServer.disconnect();
+            throw new WeakReferenceException("Context is missing.");
+        }
+        return context;
+    }
 
 }
 

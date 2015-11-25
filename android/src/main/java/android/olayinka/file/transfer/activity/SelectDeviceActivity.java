@@ -19,12 +19,15 @@
 
 package android.olayinka.file.transfer.activity;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.olayinka.file.transfer.AppSqlHelper;
 import android.olayinka.file.transfer.Utils;
 import android.olayinka.file.transfer.adapter.DeviceAdapter;
 import android.os.Bundle;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -38,7 +41,7 @@ import zxing.barcode.scanning.IntentResult;
 /**
  * Created by Olayinka on 8/14/2015.
  */
-public class SelectDeviceActivity extends Activity {
+public class SelectDeviceActivity extends AppCompatActivity {
     public static final String SELECTED_DEVICE_ID = "selected.device.id";
     View.OnClickListener mSendButtonClickListener = new View.OnClickListener() {
         @Override
@@ -65,6 +68,7 @@ public class SelectDeviceActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.device);
+        initToolbar();
         findViewById(R.id.sendFile).setOnClickListener(mSendButtonClickListener);
         mDeviceListView = (ListView) findViewById(R.id.list);
         mAdapter = new DeviceAdapter(this, AppSqlHelper.instance(this), mDeviceSelectListener);
@@ -93,4 +97,23 @@ public class SelectDeviceActivity extends Activity {
         super.onActivityResult(requestCode, resultCode, data);
     }
 
+
+    void initToolbar() {
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setDisplayHomeAsUpEnabled(true);
+        actionBar.setDisplayShowTitleEnabled(true);
+        actionBar.setTitle(R.string.select_device);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                onBackPressed();
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
 }

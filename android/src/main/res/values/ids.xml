@@ -20,4 +20,6 @@
 
 <resources>
     <item name="device_id" type="id"/>
+    <item name="transferId" type="id"/>
+    <item name="contentUri" type="id"/>
 </resources>

@@ -21,11 +21,13 @@ package desktop.olayinka.file.transfer.view;
 
 
 import com.olayinka.file.transfer.FileTransfer;
+import com.olayinka.file.transfer.Utils;
 import desktop.olayinka.file.transfer.AppContext;
 import desktop.olayinka.file.transfer.AppSettings;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
 
 
 /**
@@ -76,6 +78,11 @@ public class FileTransferListenerImpl implements FileTransfer.FileTransferListen
             //TODO
             System.out.println();
         }
+    }
+
+    @Override
+    public File getSaveDirectory() {
+        return new File(Utils.currentDirectory(), "A2P File Transfer");
     }
 
     {

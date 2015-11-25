@@ -37,7 +37,9 @@ import android.os.*;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
 import com.nononsenseapps.filepicker.FilePickerActivity;
@@ -45,6 +47,7 @@ import com.olayinka.file.transfer.R;
 import com.olayinka.file.transfer.model.Device;
 import com.olayinka.file.transfer.model.DeviceProvider;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 /**
@@ -60,8 +63,16 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         }
     };
     ListView mLogListView;
+    Messenger mMessenger = new Messenger(new IncomingHandler(this));
+    Uri[] mWaitingUris;
     private DeviceProvider mDeviceProvider;
     private NetworkStateBroadcastReceiver mBroadcastReceiver;
+    private BroadcastReceiver mRefreshUiReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            mLogListView.setAdapter(new TransferAdapter(context));
+        }
+    };
     private ServiceButton mServiceButton;
     private String mConnectionState = NetworkStateBroadcastReceiver.STATE_IMPOSSIBLE;
     private ProgressDialog mProgressDialog;
@@ -69,7 +80,14 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     private String mProgressMessage;
     private boolean mBound;
     private Messenger mSendServiceMessenger;
-    Messenger mMessenger = new Messenger(new IncomingHandler());
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.deviceInfo) {
+            startActivity(new Intent(this, QRCodeActivity.class));
+        }
+        return super.onOptionsItemSelected(item);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,7 +95,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         setContentView(R.layout.menu);
         findViewById(R.id.sendFile).setOnClickListener(mSendButtonClickListener);
         mLogListView = (ListView) findViewById(R.id.list);
-        mLogListView.setAdapter(new TransferAdapter(this, AppSqlHelper.instance(this)));
+        mLogListView.setAdapter(new TransferAdapter(this));
         mDeviceProvider = AppSqlHelper.instance(this).getDeviceProvider();
         mBroadcastReceiver = new NetworkStateBroadcastReceiver(this) {
             @Override
@@ -110,6 +128,8 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         };
         initToolbar();
         registerReceiver();
+        // Bind to the service
+        bindService();
     }
 
     private void registerReceiver() {
@@ -119,13 +139,12 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         filter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
         filter.addAction(AppSettings.WIFI_AP_STATE_ACTION);
         registerReceiver(mBroadcastReceiver, filter);
+        registerReceiver(mRefreshUiReceiver, new IntentFilter("com.olayinka.file.transfer.action.REFRESH_UI"));
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        // Bind to the service
-        bindService();
         if (mProgressShown) {
             startConnectionProgress(mProgressMessage);
         }
@@ -160,6 +179,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                         Message message = Message.obtain(null, ReceiveService.STOP_SERVER, 0, 0);
                         message.replyTo = mMessenger;
                         try {
+                            Log.wtf("activity", "sending " + message.what);
                             mSendServiceMessenger.send(message);
                         } catch (RemoteException e) {
                             e.printStackTrace();
@@ -181,12 +201,15 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     private void startConnectionProgress(String messageText) {
         mProgressMessage = messageText;
         mProgressShown = false;
-        mProgressDialog = ProgressDialog.show(this, null, mProgressMessage);
+        if (mProgressDialog != null && mProgressDialog.isShowing())
+            mProgressDialog.setMessage(messageText);
+        else mProgressDialog = ProgressDialog.show(this, null, mProgressMessage);
         boolean launched = false;
         while (!launched) {
             try {
                 Message message = Message.obtain(null, ReceiveService.LAUNCH_SERVER, 0, 0);
                 message.replyTo = mMessenger;
+                Log.wtf("activity", "sending " + message.what);
                 mSendServiceMessenger.send(message);
                 launched = true;
             } catch (Throwable e) {
@@ -195,23 +218,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             }
         }
     }
-
-    class IncomingHandler extends Handler {
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case ReceiveService.LAUNCHED_SERVER:
-                    mConnectionState = SendService.STATE_CONNECTED;
-                    mServiceButton.setState(SendService.STATE_CONNECTED);
-                    dismissProgressDialog();
-                    break;
-                default:
-                    super.handleMessage(msg);
-            }
-        }
-    }
-
-    Uri[] mWaitingUris;
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
@@ -248,7 +254,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 startActivityForResult(new Intent(MainActivity.this, SelectDeviceActivity.class), DEVICE_REQUEST_CODE);
             }
         } else if (resultCode == RESULT_OK && requestCode == DEVICE_REQUEST_CODE) {
-            Device device = mDeviceProvider.findDeviceById(intent.getLongExtra(SelectDeviceActivity.SELECTED_DEVICE_ID, 0l));
+            Device device = mDeviceProvider.findDeviceById(intent.getLongExtra(SelectDeviceActivity.SELECTED_DEVICE_ID, 0L));
             if (device == null) {
                 Utils.toast(this, getString(R.string.error_selecting_device));
             } else {
@@ -288,13 +294,12 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (mBound) {
+            unbindService(this);
+            mBound = false;
+        }
         unregisterReceiver(mBroadcastReceiver);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onStop();
-
+        unregisterReceiver(mRefreshUiReceiver);
     }
 
     @Override
@@ -312,11 +317,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     @Override
     protected void onStop() {
         super.onStop();
-        // Unbind from the service
-        if (mBound) {
-            unbindService(this);
-            mBound = false;
-        }
         dismissProgressDialog();
     }
 
@@ -327,6 +327,32 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             mProgressShown = true;
         }
     }
+
+    public static class IncomingHandler extends Handler {
+        private final WeakReference<MainActivity> mActivity;
+
+        public IncomingHandler(MainActivity activity) {
+            this.mActivity = new WeakReference<>(activity);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            MainActivity activity = mActivity.get();
+            if (activity == null) return;
+            Log.wtf("activity", "received " + msg.what);
+            switch (msg.what) {
+                case ReceiveService.LAUNCHED_SERVER:
+                    activity.mConnectionState = SendService.STATE_CONNECTED;
+                    activity.mServiceButton.setState(SendService.STATE_CONNECTED);
+                    activity.dismissProgressDialog();
+                    activity.mProgressShown = false;
+                    break;
+                default:
+                    super.handleMessage(msg);
+            }
+        }
+    }
+
 }
 
 

@@ -20,9 +20,9 @@
   -->
 
 <resources>
-    <color name="primary">#ffb9312a</color>
-    <color name="primaryDark">#ff9b3029</color>
-    <color name="accent">#ffff00ff</color>
+    <color name="primary">#ff009688</color>
+    <color name="primaryDark">#00695b</color>
+    <color name="accent">#ff4CAF50</color>
     <color name="not_activated">#ff1f3669</color>
     <color name="white">#FFF</color>
     <color name="black">#000</color>

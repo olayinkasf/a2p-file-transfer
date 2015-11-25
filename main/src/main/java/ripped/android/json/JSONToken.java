@@ -21,30 +21,29 @@ package ripped.android.json;
 public enum JSONToken {
 
     /**
-     * The opening of a JSON array. Written using {@link JsonWriter#beginObject}
-     * and read using {@link JsonReader#beginObject}.
+     * The opening of a JSON array. Written using
+     * and read using .
      */
     BEGIN_ARRAY,
     /**
-     * The closing of a JSON array. Written using {@link JsonWriter#endArray}
-     * and read using {@link JsonReader#endArray}.
+     * The closing of a JSON array. Written using
+     * and read using .
      */
     END_ARRAY,
     /**
      * The opening of a JSON object. Written using
-     * {@link JsonWriter#beginObject} and read using
-     * {@link JsonReader#beginObject}.
+     *  and read using
+     * .
      */
     BEGIN_OBJECT,
     /**
-     * The closing of a JSON object. Written using {@link JsonWriter#endObject}
-     * and read using {@link JsonReader#endObject}.
+     * The closing of a JSON object. Written using
+     * and read using .
      */
     END_OBJECT,
     /**
      * A JSON property name. Within objects, tokens alternate between names and
-     * their values. Written using {@link JsonWriter#name} and read using {@link
-     * JsonReader#nextName}
+     * their values. Written using  and read using
      */
     NAME,
     /**
@@ -65,8 +64,7 @@ public enum JSONToken {
      */
     NULL,
     /**
-     * The end of the JSON stream. This sentinel value is returned by {@link
-     * JsonReader#peek()} to signal that the JSON-encoded value has no more
+     * The end of the JSON stream. This sentinel value is returned by  to signal that the JSON-encoded value has no more
      * tokens.
      */
     END_DOCUMENT

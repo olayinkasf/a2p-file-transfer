@@ -29,7 +29,6 @@ import java.nio.ByteBuffer;
 
 public class FileTransfer {
 
-
     public FileTransfer(DataInputStream mInputStream, DataOutputStream mOutputStream) {
         this.mInputStream = mInputStream;
         this.mOutputStream = mOutputStream;
@@ -48,10 +47,8 @@ public class FileTransfer {
 
             LOG.w("readData", "Started reading data for file: " + name);
 
-            if (listener != null) {
-                listener.registerFileName(name);
-            }
-            File outputFile = new File("tmp/" + name);
+            File outputFile = new File(listener.getSaveDirectory(), name);
+            listener.registerFileName(outputFile.getAbsolutePath());
             if (!outputFile.getParentFile().exists()) {
                 if (!outputFile.getParentFile().mkdirs())
                     throw new SecurityException();
@@ -60,9 +57,7 @@ public class FileTransfer {
             //read  file size (long)
             long maxBytesAvailable = mInputStream.readLong();
 
-            if (listener != null) {
-                listener.registerFileSize(maxBytesAvailable);
-            }
+            listener.registerFileSize(maxBytesAvailable);
 
             long readData = 0;
             DataOutputStream fileOutputStream = new DataOutputStream(new FileOutputStream(outputFile));
@@ -86,9 +81,7 @@ public class FileTransfer {
 
                 byte rate = (byte) ((readData * 100) / maxBytesAvailable);
                 LOG.w("readData", "Successfully read: " + readData + " at " + rate + "%");
-                if (listener != null) {
-                    listener.registerProgress(readData);
-                }
+                listener.registerProgress(readData);
 
                 mOutputStream.write(new byte[]{rate});
                 mOutputStream.flush();
@@ -102,19 +95,14 @@ public class FileTransfer {
 
             LOG.w("readData", "Read data of size " + readData + " bytes from " + maxBytesAvailable + " bytes");
 
-            if (listener != null) {
-                listener.registerFinished();
-            }
+            listener.registerFinished();
+
         } catch (SecurityException e) {
-            if (listener != null) {
-                listener.registerErrorMessage("Can't create or access destination folder!");
-                listener.registerFinished();
-                throw new DirectoryAccessException("Can't create or access destination folder!");
-            }
+            listener.registerErrorMessage("Can't create or access destination folder!");
+            listener.registerFinished();
+            throw new DirectoryAccessException("Can't create or access destination folder!");
         } catch (IOException e) {
-            if (listener != null) {
-                listener.registerFinished();
-            }
+            listener.registerFinished();
             throw e;
         }
     }
@@ -145,6 +133,7 @@ public class FileTransfer {
          */
         void registerFinished();
 
+        File getSaveDirectory();
     }
 
 }

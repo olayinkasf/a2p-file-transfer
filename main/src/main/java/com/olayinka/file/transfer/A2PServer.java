@@ -163,12 +163,6 @@ public abstract class A2PServer {
             synchronized ((mClients)) {
                 mClientsStatus.remove(client.getId());
                 mClients.remove(client.getId());
-                try {
-                    if (client.getSocket().isClosed())
-                        client.getSocket().close();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
             }
         }
     }

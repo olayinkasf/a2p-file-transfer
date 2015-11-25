@@ -24,6 +24,7 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
@@ -45,6 +46,8 @@ import com.olayinka.file.transfer.R;
 import com.olayinka.file.transfer.content.AbstractAppContent;
 import com.olayinka.file.transfer.exception.FileTransferException;
 import com.olayinka.file.transfer.model.Device;
+import com.olayinka.file.transfer.model.Transfer;
+import com.olayinka.file.transfer.model.TransferProvider;
 import ripped.android.json.JSONObject;
 
 import java.io.*;
@@ -60,22 +63,25 @@ import static com.olayinka.file.transfer.SocketUtils.writeStringData;
  */
 public class A2PClient extends AsyncTask<Uri, String, Integer> {
 
+    NotificationCompat.Builder mNotifBuilder;
     private Device mDevice;
     private Context mContext;
     private DataOutputStream mDataOutputStream;
     private DataInputStream mDataInputStream;
     private ProgressTask mProgressTask;
     private Socket mSocket;
-    private Uri[] mUris;
-    private boolean[] mStatuses;
+    private Transfer[] mTransfers;
+    private File[] mFiles;
     private boolean mCancelRequest;
     private String mAuthCode = null;
     private JSONObject mThisDevice;
     private int mAuthCounter = 0;
+    private final TransferProvider mTransferProvider;
 
     public A2PClient(Context mContext, Device mDevice) {
         this.mContext = mContext;
         this.mDevice = mDevice;
+        mTransferProvider = AppSqlHelper.instance(mContext).getTransferProvider();
     }
 
     @Override
@@ -88,9 +94,10 @@ public class A2PClient extends AsyncTask<Uri, String, Integer> {
 
     @Override
     protected final Integer doInBackground(Uri... params) {
-        initThisDevice();
+        mThisDevice = initThisDevice(mContext);
 
-        mUris = params;
+        mTransfers = new Transfer[params.length];
+        mFiles = new File[params.length];
 
         try {
 
@@ -123,17 +130,30 @@ public class A2PClient extends AsyncTask<Uri, String, Integer> {
             publishProgress(android.olayinka.file.transfer.AppSettings.PROGRESS_AUTH_SUCCESS);
 
 
-            for (int index = 0; index < mUris.length; index++) {
+            for (int index = 0; index < params.length; index++) {
+                File file = new File(params[index].getPath());
+                Transfer transfer = new Transfer();
+                mTransfers[index] = transfer;
+                mFiles[index] = file;
+
+                transfer.setFileName(file.getAbsolutePath());
+                transfer.setTime(System.currentTimeMillis());
+                transfer.setDeviceId(mDevice.getId());
+                transfer.setTransferType(Transfer.TransferType.SENT.toString());
+                transfer.setStatus(Transfer.Status.NO_INIT);
+                transfer.setExpectedSize(-1L);
+                transfer.setTransferredSize(0L);
+                mTransferProvider.insertTransfer(transfer);
+
                 try {
                     sendStartNotifierToDevice();
                 } catch (IOException e) {
                     e.printStackTrace();
                     return AbstractAppSettings.RETURN_CONNECTION_LOST;
                 }
-                Uri uri = mUris[index];
 
                 //get and verify file availability
-                File file = new File(uri.getPath());
+
                 if (!file.exists() || !file.canRead()) {
                     mProgressTask.expectedFiles--;
                     publishProgress(android.olayinka.file.transfer.AppSettings.PROGRESS_FILE_ERROR);
@@ -141,14 +161,14 @@ public class A2PClient extends AsyncTask<Uri, String, Integer> {
                 }
 
                 try {
-                    sendFileInfo(file, index);
+                    sendFileInfo(index);
                 } catch (IOException e) {
                     e.printStackTrace();
                     return AbstractAppSettings.RETURN_CONNECTION_LOST;
                 }
 
                 try {
-                    sendFileData(file);
+                    sendFileData(index);
                 } catch (IOException e) {
                     e.printStackTrace();
                     return AbstractAppSettings.RETURN_FAILED_FILE;
@@ -173,19 +193,19 @@ public class A2PClient extends AsyncTask<Uri, String, Integer> {
         return AbstractAppSettings.RETURN_TRANSFER_SUCCESS;
     }
 
-    private void initThisDevice() {
-        mThisDevice = new JSONObject();
+    public static JSONObject initThisDevice(Context context) {
+        JSONObject thisDevice = new JSONObject();
 
         //Get name of this device
-        AppSqlHelper sqlHelper = AppSqlHelper.instance(mContext);
+        AppSqlHelper sqlHelper = AppSqlHelper.instance(context);
         SQLiteDatabase database = sqlHelper.getReadableDatabase();
         Cursor cursor = database.query(AppSqlHelper.APP_INFO, null, null, null, null, null, null);
         cursor.moveToNext();
-        String deviceName = cursor.getString(1);
+        String deviceName = cursor.getString(2);
         cursor.close();
 
         //Get mac address of this device and hash it for fuck's sake
-        WifiManager manager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+        WifiManager manager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
         WifiInfo info = manager.getConnectionInfo();
         String address = null;
         try {
@@ -195,9 +215,11 @@ public class A2PClient extends AsyncTask<Uri, String, Integer> {
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
-        mThisDevice.put(AbstractAppContent.DeviceColumns.DEVICE_TYPE, AppSettings.DEVICE_TYPE.toString());
-        mThisDevice.put(AbstractAppContent.DeviceColumns.NAME, deviceName);
-        mThisDevice.put(Device.Columns.MAC_ADDRESS, address);
+        thisDevice.put(AbstractAppContent.DeviceColumns.DEVICE_TYPE, AppSettings.DEVICE_TYPE.toString());
+        thisDevice.put(AbstractAppContent.DeviceColumns.NAME, deviceName);
+        thisDevice.put(Device.Columns.MAC_ADDRESS, address);
+
+        return thisDevice;
     }
 
     private byte requestAuthentication() throws IOException {
@@ -268,7 +290,8 @@ public class A2PClient extends AsyncTask<Uri, String, Integer> {
     }
 
     @SuppressWarnings("DuplicateThrows")
-    private void sendFileData(File file) throws FileNotFoundException, IOException, FileTransferException {
+    private void sendFileData(int index) throws FileNotFoundException, IOException, FileTransferException {
+        File file = mFiles[index];
         FileInputStream fileInputStream = new FileInputStream(file);
         long fileSize = file.length();
         String fileName = file.getName();
@@ -281,6 +304,7 @@ public class A2PClient extends AsyncTask<Uri, String, Integer> {
                 mDataOutputStream.write(buffer, 0, result);
                 mDataOutputStream.flush();
                 total += result;
+                mTransfers[index].setTransferredSize(total);
             } else if (total != fileSize) {
                 throw new FileTransferException("Error writing file " + fileName + " Transfer failed, please try again");
             }
@@ -288,12 +312,14 @@ public class A2PClient extends AsyncTask<Uri, String, Integer> {
     }
 
     //send index (int), file name length (int), file name(byte[]), file size (long)
-    private void sendFileInfo(File file, int index) throws IOException {
+    private void sendFileInfo(int index) throws IOException {
+        File file = mFiles[index];
         mDataOutputStream.write(ByteBuffer.allocate(4).putInt(index).array());
         mDataOutputStream.flush();
         writeStringData(mDataOutputStream, file.getName());
         mDataOutputStream.write(ByteBuffer.allocate(8).putLong(file.length()).array());
         mDataOutputStream.flush();
+        mTransfers[index].setExpectedSize(file.length());
     }
 
     private void initConnection() throws IOException {
@@ -301,8 +327,6 @@ public class A2PClient extends AsyncTask<Uri, String, Integer> {
         mDataOutputStream = new DataOutputStream(mSocket.getOutputStream());
         mDataInputStream = new DataInputStream(mSocket.getInputStream());
     }
-
-    NotificationCompat.Builder mNotifBuilder;
 
     @Override
     protected void onProgressUpdate(String... values) {
@@ -414,6 +438,8 @@ public class A2PClient extends AsyncTask<Uri, String, Integer> {
             mProgressTask = null;
         }
 
+        mContext.sendBroadcast(new Intent("com.olayinka.file.transfer.action.REFRESH_UI"));
+
         super.onPostExecute(returnCode);
     }
 
@@ -424,9 +450,8 @@ public class A2PClient extends AsyncTask<Uri, String, Integer> {
         private boolean done = false;
         private int currentIndex = -1;
         private File currentFile;
-        private int expectedFiles = mUris.length;
+        private int expectedFiles = mTransfers.length;
         private int readFiles = 0;
-
 
         @Override
         protected void onPreExecute() {
@@ -442,13 +467,17 @@ public class A2PClient extends AsyncTask<Uri, String, Integer> {
                     byte progress = mDataInputStream.readByte();
                     if (progress == android.olayinka.file.transfer.AppSettings.FILE_PROGRESS_START) {
                         currentIndex = mDataInputStream.readInt();
-                        currentFile = new File(mUris[currentIndex].getPath());
+                        currentFile = mFiles[currentIndex];
+                        mTransfers[currentIndex].setStatus(Transfer.Status.FAILED);
                     } else if (progress == android.olayinka.file.transfer.AppSettings.FILE_PROGRESS_END) {
                         readFiles++;
-                        mStatuses[currentIndex] = true;
-                    } else if (progress == AbstractAppSettings.MESSAGE_FILE_TRANSFER_EXIT)
+                        mTransfers[currentIndex].setStatus(Transfer.Status.FINISHED);
+                        synchronized (mTransferProvider) {
+                            mTransferProvider.updateTransfer(mTransfers[currentIndex]);
+                        }
+                    } else if (progress == AbstractAppSettings.MESSAGE_FILE_TRANSFER_EXIT) {
                         return 0;
-                    else
+                    } else
                         publishProgress(progress);
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -463,14 +492,13 @@ public class A2PClient extends AsyncTask<Uri, String, Integer> {
             return null;
         }
 
-
         @Override
         protected void onProgressUpdate(Byte... values) {
             byte aByte = values[0];
             if (System.currentTimeMillis() - lastUpdate >= 500 || aByte == 100) {
                 lastUpdate = System.currentTimeMillis();
                 mNotifBuilder.setProgress(100, aByte, false);
-                mNotifBuilder.setContentTitle("Transferring " + (currentIndex + 1) + "/" + mUris.length);
+                mNotifBuilder.setContentTitle("Transferring " + (currentIndex + 1) + "/" + mTransfers.length);
                 mNotifBuilder.setContentText(currentFile.getName());
                 mNotifBuilder.setTicker(currentFile.getName());
                 mNotifBuilder.setStyle(new NotificationCompat.BigTextStyle().bigText("Transferring " + currentFile.getName() + " to " + android.olayinka.file.transfer.Utils.buildDeviceName(mDevice)));

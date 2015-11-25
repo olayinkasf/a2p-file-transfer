@@ -6,7 +6,6 @@ import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.olayinka.file.transfer.AppSqlHelper;
 import com.olayinka.file.transfer.content.AbstractAppContent;
-import com.olayinka.file.transfer.model.Device;
 import com.olayinka.file.transfer.model.Transfer;
 import com.olayinka.file.transfer.model.TransferProvider;
 
@@ -19,6 +18,35 @@ public class SQLiteTransferProvider implements TransferProvider {
 
     public SQLiteTransferProvider(AppSqlHelper mSqlHelper) {
         this.mSqlHelper = mSqlHelper;
+    }
+
+    public static Transfer transferFromContentValues(ContentValues values) {
+        Transfer transfer = new Transfer();
+        transfer.setId(values.getAsLong(Transfer.Columns._ID));
+        transfer.setDeviceId(values.getAsLong(Transfer.Columns.DEVICE_ID));
+        transfer.setFileName(values.getAsString(Transfer.Columns.FILE_NAME));
+        transfer.setExpectedSize(values.getAsLong(Transfer.Columns.EXPECTED_SIZE));
+        transfer.setTransferredSize(values.getAsLong(Transfer.Columns.TRANSFERRED_SIZE));
+        transfer.setTransferType(values.getAsString(Transfer.Columns.TRANSFER_TYPE));
+        transfer.setTime(values.getAsLong(Transfer.Columns.TIME));
+        transfer.setStatus(values.getAsShort(Transfer.Columns.STATUS));
+        return transfer;
+    }
+
+    public static ContentValues contentValuesForTransfer(Transfer transfer) {
+        ContentValues contentValues = new ContentValues();
+        if (transfer.getId() != null) contentValues.put(Transfer.Columns._ID, transfer.getId());
+        if (transfer.getDeviceId() != null) contentValues.put(Transfer.Columns.DEVICE_ID, transfer.getDeviceId());
+        if (transfer.getFileName() != null) contentValues.put(Transfer.Columns.FILE_NAME, transfer.getFileName());
+        if (transfer.getExpectedSize() != null)
+            contentValues.put(Transfer.Columns.EXPECTED_SIZE, transfer.getExpectedSize());
+        if (transfer.getTransferredSize() != null)
+            contentValues.put(Transfer.Columns.TRANSFERRED_SIZE, transfer.getTransferredSize());
+        if (transfer.getTransferType() != null)
+            contentValues.put(Transfer.Columns.TRANSFER_TYPE, transfer.getTransferType());
+        if (transfer.getTime() != null) contentValues.put(Transfer.Columns.TIME, transfer.getTime());
+        if (transfer.getStatus() != null) contentValues.put(Transfer.Columns.STATUS, transfer.getStatus());
+        return contentValues;
     }
 
     @Override
@@ -43,19 +71,6 @@ public class SQLiteTransferProvider implements TransferProvider {
         return transferFromContentValues(values);
     }
 
-    public static Transfer transferFromContentValues(ContentValues values) {
-        Transfer transfer = new Transfer();
-        transfer.setId(values.getAsLong(Transfer.Columns._ID));
-        transfer.setDeviceId(values.getAsLong(Transfer.Columns.DEVICE_ID));
-        transfer.setFileName(values.getAsString(Transfer.Columns.FILE_NAME));
-        transfer.setExpectedSize(values.getAsLong(Transfer.Columns.EXPECTED_SIZE));
-        transfer.setTransferredSize(values.getAsLong(Transfer.Columns.TRANSFERRED_SIZE));
-        transfer.setTransferType(values.getAsString(Transfer.Columns.TRANSFER_TYPE));
-        transfer.setTime(values.getAsLong(Transfer.Columns.TIME));
-        transfer.setStatus(values.getAsShort(Transfer.Columns.STATUS));
-        return transfer;
-    }
-
     @Override
     public boolean archiveTransfer(Transfer transfer) {
         Transfer tmpTransfer = findTransferById(transfer.getId());
@@ -75,22 +90,6 @@ public class SQLiteTransferProvider implements TransferProvider {
         database.endTransaction();
 
         return res <= 1;
-    }
-
-    public static ContentValues contentValuesForTransfer(Transfer transfer) {
-        ContentValues contentValues = new ContentValues();
-        if (transfer.getId() != null) contentValues.put(Transfer.Columns._ID, transfer.getId());
-        if (transfer.getDeviceId() != null) contentValues.put(Transfer.Columns.DEVICE_ID, transfer.getDeviceId());
-        if (transfer.getFileName() != null) contentValues.put(Transfer.Columns.FILE_NAME, transfer.getFileName());
-        if (transfer.getExpectedSize() != null)
-            contentValues.put(Transfer.Columns.EXPECTED_SIZE, transfer.getExpectedSize());
-        if (transfer.getTransferredSize() != null)
-            contentValues.put(Transfer.Columns.TRANSFERRED_SIZE, transfer.getTransferredSize());
-        if (transfer.getTransferType() != null)
-            contentValues.put(Transfer.Columns.TRANSFER_TYPE, transfer.getTransferType());
-        if (transfer.getTime() != null) contentValues.put(Transfer.Columns.TIME, transfer.getTime());
-        if (transfer.getStatus() != null) contentValues.put(Transfer.Columns.STATUS, transfer.getStatus());
-        return contentValues;
     }
 
     @Override
@@ -126,7 +125,7 @@ public class SQLiteTransferProvider implements TransferProvider {
         String[] whereArgs = new String[]{"" + transfer.getId()};
 
         database.beginTransaction();
-        int res = database.update(Device.TABLE, contentValuesForTransfer(transfer), where, whereArgs);
+        int res = database.update(Transfer.TABLE, contentValuesForTransfer(transfer), where, whereArgs);
         database.setTransactionSuccessful();
         database.endTransaction();
 

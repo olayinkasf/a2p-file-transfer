@@ -5,38 +5,45 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
-import android.olayinka.file.transfer.AppLogger;
-import android.olayinka.file.transfer.AppSettings;
-import android.olayinka.file.transfer.AppSqlHelper;
-import android.olayinka.file.transfer.AsyncTask;
+import android.olayinka.file.transfer.*;
+import android.olayinka.file.transfer.Utils;
+import android.os.Environment;
 import android.support.v7.app.NotificationCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
 import com.olayinka.file.transfer.*;
+import com.olayinka.file.transfer.exception.WeakReferenceException;
 import com.olayinka.file.transfer.model.Device;
 import com.olayinka.file.transfer.model.DeviceProvider;
 import com.olayinka.file.transfer.model.Transfer;
 import ripped.android.json.JSONObject;
+
+import java.io.File;
+import java.lang.ref.WeakReference;
 
 /**
  * Created by Olayinka on 11/14/2015.
  */
 public class A2PClientTask extends AsyncTask<String, String, Integer> implements A2PClient.ListenerProvider {
 
+    final Intent mBroadcastIntent = new Intent();
     private final NotificationCompat.Builder mNotifBuilder;
     private final NotificationManager mNotifyMgr;
+    private final FileTransfer.FileTransferListener mFileTransferListener = new FileTransferListenerImpl();
     A2PClient mA2PClient;
-    private Context mContext;
-    final Intent mBroadcastIntent = new Intent();
     Device mDevice;
-
+    private WeakReference<Context> mContext;
     private final DeviceConnect.DeviceConnectListener mDeviceConnectListener = new AbstractDeviceConnectListener() {
 
         @Override
         protected DeviceProvider getDeviceProvider() {
-            return AppSqlHelper.instance(mContext).getDeviceProvider();
+            try {
+                return AppSqlHelper.instance(getContext()).getDeviceProvider();
+            } catch (WeakReferenceException ignored) {
+            }
+            return null;
         }
 
         @Override
@@ -52,10 +59,8 @@ public class A2PClientTask extends AsyncTask<String, String, Integer> implements
         }
     };
 
-    private final FileTransfer.FileTransferListener mFileTransferListener = new FileTransferListenerImpl();
-
     public A2PClientTask(Context mContext, A2PClient mA2PClient) {
-        this.mContext = mContext;
+        this.mContext = new WeakReference<>(mContext);
         this.mA2PClient = mA2PClient;
         mNotifBuilder = new NotificationCompat.Builder(mContext);
         mNotifBuilder.setSmallIcon(R.mipmap.ic_launcher);
@@ -69,12 +74,8 @@ public class A2PClientTask extends AsyncTask<String, String, Integer> implements
     @Override
     protected Integer doInBackground(String... params) {
         mA2PClient.run();
-        return null;
-    }
-
-    @Override
-    protected void onPostExecute(Integer integer) {
-        super.onPostExecute(integer);
+        mA2PClient.disconnect(null);
+        return 0;
     }
 
     @Override
@@ -87,7 +88,12 @@ public class A2PClientTask extends AsyncTask<String, String, Integer> implements
                 String name = object.getString(Device.Columns.NAME);
                 String ipAddress = object.getString(Device.Columns.LAST_KNOWN_IP);
 
-                LayoutInflater inflater = LayoutInflater.from(mContext);
+                LayoutInflater inflater = null;
+                try {
+                    inflater = LayoutInflater.from(getContext());
+                } catch (WeakReferenceException e) {
+                    return;
+                }
                 View view = inflater.inflate(R.layout.auth_code, null);
 
                 TextView nameTextView = (TextView) view.findViewById(R.id.deviceName);
@@ -98,13 +104,18 @@ public class A2PClientTask extends AsyncTask<String, String, Integer> implements
                 ipAddressTextView.setText(ipAddress);
                 authCodeTextView.setText(authCode);
 
-                AlertDialog dialog = new AlertDialog.Builder(mContext)
-                        .setMessage("Authentication access code")
-                        .setPositiveButton("DONE", null)
-                        .setTitle(name)
-                        .setView(view)
-                        .setCancelable(false)
-                        .create();
+                AlertDialog dialog = null;
+                try {
+                    dialog = new AlertDialog.Builder(getContext())
+                            .setMessage("Authentication access code")
+                            .setPositiveButton("DONE", null)
+                            .setTitle(name)
+                            .setView(view)
+                            .setCancelable(false)
+                            .create();
+                } catch (WeakReferenceException e) {
+                    return;
+                }
                 dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
                 dialog.show();
                 break;
@@ -122,6 +133,16 @@ public class A2PClientTask extends AsyncTask<String, String, Integer> implements
         }
     }
 
+    @Override
+    public FileTransfer.FileTransferListener newFileTransferListener() {
+        return mFileTransferListener;
+    }
+
+    @Override
+    public DeviceConnect.DeviceConnectListener newDeviceConnectListener() {
+        return mDeviceConnectListener;
+    }
+
     class FileTransferListenerImpl implements FileTransfer.FileTransferListener {
         Transfer currentTransfer;
         long lastProgress = System.currentTimeMillis();
@@ -133,14 +154,19 @@ public class A2PClientTask extends AsyncTask<String, String, Integer> implements
             currentTransfer.setFileName(name);
             currentTransfer.setDeviceId(mDevice.getId());
             currentTransfer.setTransferType(Transfer.TransferType.RECEIVED.toString());
+            currentTransfer.setTime(System.currentTimeMillis());
         }
 
         @Override
         public void registerFileSize(long maxBytesAvailable) {
             currentTransfer.setExpectedSize(maxBytesAvailable);
-            currentTransfer.setTransferredSize(0l);
-            currentTransfer.setStatus(Transfer.Status.ACTIVE);
-            AppSqlHelper.instance(mContext).getTransferProvider().insertTransfer(currentTransfer);
+            currentTransfer.setTransferredSize(0L);
+            currentTransfer.setStatus(Transfer.Status.FINISHED);
+
+            try {
+                AppSqlHelper.instance(getContext()).getTransferProvider().insertTransfer(currentTransfer);
+            } catch (WeakReferenceException ignored) {
+            }
         }
 
         @Override
@@ -152,30 +178,51 @@ public class A2PClientTask extends AsyncTask<String, String, Integer> implements
                 lastProgress = System.currentTimeMillis();
                 publishProgress(AppSettings.PROGRESS_VALUE, currentTransfer.getFileName(), currentTransfer.progress() + "");
             }
-            mContext.sendBroadcast(mBroadcastIntent);
+
+            try {
+                getContext().sendBroadcast(mBroadcastIntent);
+            } catch (WeakReferenceException ignored) {
+            }
         }
 
         @Override
         public void registerErrorMessage(String message) {
-            AppLogger.wtf(mContext, "registerFinished", currentTransfer.getFileName() + "; " + currentTransfer.getExpectedSize() + "; " + currentTransfer.getTransferredSize());
-            AppSqlHelper.instance(mContext).getTransferProvider().updateTransfer(currentTransfer);
+            try {
+                AppLogger.wtf(getContext(), "registerFinished", currentTransfer.getFileName() + "; " + currentTransfer.getExpectedSize() + "; " + currentTransfer.getTransferredSize());
+                AppSqlHelper.instance(getContext()).getTransferProvider().updateTransfer(currentTransfer);
+                getContext().sendBroadcast(new Intent("com.olayinka.file.transfer.action.REFRESH_UI"));
+            } catch (WeakReferenceException ignored) {
+            }
         }
 
         @Override
         public void registerFinished() {
-            AppLogger.wtf(mContext, "registerFinished", currentTransfer.getFileName() + "; " + currentTransfer.getExpectedSize() + "; " + currentTransfer.getTransferredSize());
-            AppSqlHelper.instance(mContext).getTransferProvider().updateTransfer(currentTransfer);
-            publishProgress(AppSettings.PROGRESS_VALUE, currentTransfer.getFileName(), currentTransfer.progress() + "");
+            try {
+                AppLogger.wtf(getContext(), "registerFinished", currentTransfer.getFileName() + "; " + currentTransfer.getExpectedSize() + "; " + currentTransfer.getTransferredSize());
+                AppSqlHelper.instance(getContext()).getTransferProvider().updateTransfer(currentTransfer);
+                publishProgress(AppSettings.PROGRESS_VALUE, currentTransfer.getFileName(), currentTransfer.progress() + "");
+                getContext().sendBroadcast(new Intent("com.olayinka.file.transfer.action.REFRESH_UI"));
+            } catch (WeakReferenceException ignored) {
+            }
+        }
+
+        @Override
+        public File getSaveDirectory() {
+            if (Utils.isExternalStorageWritable()) {
+                return new File(Environment.getExternalStorageDirectory(), "A2P File Transfer");
+            }
+            return new File("./");
         }
     }
 
-    @Override
-    public FileTransfer.FileTransferListener newFileTransferListener() {
-        return mFileTransferListener;
-    }
-
-    @Override
-    public DeviceConnect.DeviceConnectListener newDeviceConnectListener() {
-        return mDeviceConnectListener;
+    Context getContext() throws WeakReferenceException {
+        Context context = mContext.get();
+        if (context == null) {
+            WeakReferenceException e = new WeakReferenceException("Context is missing.");
+            mA2PClient.disconnect(e);
+            e.printStackTrace();
+            throw e;
+        }
+        return context;
     }
 }
