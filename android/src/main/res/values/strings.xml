@@ -29,7 +29,7 @@
     <string name="notif.auth.success">Device successfully authenticated</string>
     <string name="notif.file.error" formatted="false">Couldn\'t transfer file\n%s</string>
     <string name="notif.connect.success" formatted="false">Successfully connect to device %s at %s</string>
-    <string name="notif.init" formatted="false">Wait while a connection is established to %s</string>
+    <string name="notif.init" formatted="false">Wait while a connection is established to %s at %s</string>
     <string name="notif.request.auth">Your device wasn\'t verified. Enter the code displayed on the destination device
         screen.
     </string>
@@ -38,7 +38,7 @@
     </string>
     <string name="return_connection_lost" formatted="false">Connection lost|Connection lost while sending files.
     </string>
-    <string name="return_transfer_success" formatted="false">File transfer completed|Successfully transferred %s/%s
+    <string name="return_transfer_success" formatted="false">File transfer completed|Successfully transferred %d/%d
         files.
     </string>
     <string name="return_auth_failed" formatted="false">Authentication failed|Failed to authenticate device. File

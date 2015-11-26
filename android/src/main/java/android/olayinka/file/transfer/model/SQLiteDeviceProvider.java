@@ -29,7 +29,7 @@ public class SQLiteDeviceProvider implements DeviceProvider {
         if (device.getLastAccess() != null) contentValues.put(Device.Columns.LAST_ACCESS, device.getLastAccess());
         if (device.getLastKnownIp() != null) contentValues.put(Device.Columns.LAST_KNOWN_IP, device.getLastKnownIp());
         if (device.getName() != null) contentValues.put(Device.Columns.NAME, device.getName());
-        if (device.getDisplayName() != null) contentValues.put(Device.Columns.NAME, device.getDisplayName());
+        if (device.getDisplayName() != null) contentValues.put(Device.Columns.DISPLAY_NAME, device.getDisplayName());
         if (device.getId() != null) contentValues.put(Device.Columns._ID, device.getId());
         return contentValues;
     }
@@ -65,6 +65,8 @@ public class SQLiteDeviceProvider implements DeviceProvider {
         cursor.moveToNext();
 
         DatabaseUtils.cursorRowToContentValues(cursor, values);
+
+        cursor.close();
 
         return deviceFromContentValues(values);
     }

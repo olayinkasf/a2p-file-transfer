@@ -39,7 +39,6 @@ public class AbstractAppSettings {
 
     public static final int BUFFER_SIZE = 4096;
 
-    public static final String AUTH_RESULT = "auth.result";
 
 
     public static final String PROGRESS_REQUEST_AUTH = "request.authentication";

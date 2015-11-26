@@ -30,6 +30,7 @@
                 <column name="status" nullable="true" length="16"/>
             </basic>
             <transient name="device"/>
+            <transient name="file"/>
         </attributes>
     </entity>
 </entity-mappings>

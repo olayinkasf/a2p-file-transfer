@@ -182,7 +182,7 @@ public class AvailableNetworkView extends JPanel implements A2PServerListener {
         mStatusInfoPanel = new StatusInfoPanel(mContext);
         add(mStatusInfoPanel);
 
-        mProgressList = new ListenerProviderImpl(mContext);
+        mProgressList = new DesktopListenerProvider(mContext);
         mProgressList.setLayout(new WrapLayout(FlowLayout.CENTER, 3, 3));
         mProgressList.setBackground(AppSettings.APP_COLOR);
 
@@ -200,7 +200,7 @@ public class AvailableNetworkView extends JPanel implements A2PServerListener {
 
         //TODO DELETE
         /*for (int i = 1; i < 100; i++) {
-            final FileTransferListenerImpl label2 = new FileTransferListenerImpl();
+            final DesktopFileTransferListener label2 = new DesktopFileTransferListener();
             JComponent component = label2.$$$getRootComponent$$$();
             mProgressList.add(component);
             mProgressList.revalidate();

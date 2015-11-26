@@ -21,6 +21,7 @@ package desktop.olayinka.file.transfer.model;
 
 import com.olayinka.file.transfer.Utils;
 import com.olayinka.file.transfer.model.AppInfo;
+import com.olayinka.file.transfer.model.TransferProvider;
 import org.apache.commons.io.IOUtils;
 import ripped.android.json.JSONArray;
 import ripped.android.json.JSONException;
@@ -227,5 +228,9 @@ public class DerbyJDBCHelper {
 
     public AppInfo getSystemProperties() {
         return mManager.find(AppInfo.class, 1l);
+    }
+
+    public TransferProvider getTransferProvider() {
+        return null;
     }
 }

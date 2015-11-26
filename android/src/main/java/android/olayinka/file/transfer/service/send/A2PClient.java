@@ -71,7 +71,6 @@ public class A2PClient extends AsyncTask<Uri, String, Integer> {
     private ProgressTask mProgressTask;
     private Socket mSocket;
     private Transfer[] mTransfers;
-    private File[] mFiles;
     private boolean mCancelRequest;
     private String mAuthCode = null;
     private JSONObject mThisDevice;
@@ -97,7 +96,6 @@ public class A2PClient extends AsyncTask<Uri, String, Integer> {
         mThisDevice = initThisDevice(mContext);
 
         mTransfers = new Transfer[params.length];
-        mFiles = new File[params.length];
 
         try {
 
@@ -131,12 +129,10 @@ public class A2PClient extends AsyncTask<Uri, String, Integer> {
 
 
             for (int index = 0; index < params.length; index++) {
-                File file = new File(params[index].getPath());
                 Transfer transfer = new Transfer();
                 mTransfers[index] = transfer;
-                mFiles[index] = file;
 
-                transfer.setFileName(file.getAbsolutePath());
+                transfer.setFileName(params[index].getPath());
                 transfer.setTime(System.currentTimeMillis());
                 transfer.setDeviceId(mDevice.getId());
                 transfer.setTransferType(Transfer.TransferType.SENT.toString());
@@ -154,7 +150,7 @@ public class A2PClient extends AsyncTask<Uri, String, Integer> {
 
                 //get and verify file availability
 
-                if (!file.exists() || !file.canRead()) {
+                if (!transfer.getFile().exists() || !transfer.getFile().canRead()) {
                     mProgressTask.expectedFiles--;
                     publishProgress(android.olayinka.file.transfer.AppSettings.PROGRESS_FILE_ERROR);
                     continue;
@@ -291,7 +287,7 @@ public class A2PClient extends AsyncTask<Uri, String, Integer> {
 
     @SuppressWarnings("DuplicateThrows")
     private void sendFileData(int index) throws FileNotFoundException, IOException, FileTransferException {
-        File file = mFiles[index];
+        File file = mTransfers[index].getFile();
         FileInputStream fileInputStream = new FileInputStream(file);
         long fileSize = file.length();
         String fileName = file.getName();
@@ -313,7 +309,7 @@ public class A2PClient extends AsyncTask<Uri, String, Integer> {
 
     //send index (int), file name length (int), file name(byte[]), file size (long)
     private void sendFileInfo(int index) throws IOException {
-        File file = mFiles[index];
+        File file = mTransfers[index].getFile();
         mDataOutputStream.write(ByteBuffer.allocate(4).putInt(index).array());
         mDataOutputStream.flush();
         writeStringData(mDataOutputStream, file.getName());
@@ -347,10 +343,12 @@ public class A2PClient extends AsyncTask<Uri, String, Integer> {
             case android.olayinka.file.transfer.AppSettings.PROGRESS_CONNECT_SUCCESS:
                 notificationId = android.olayinka.file.transfer.AppSettings.NOTIF_CONNECT_SUCCESS;
                 contentText = mContext.getString(R.string.notif_connect_success);
+                contentText = String.format(contentText, mDevice.getDisplayName(), mDevice.getLastKnownIp());
                 break;
             case android.olayinka.file.transfer.AppSettings.PROGRESS_INIT:
                 notificationId = android.olayinka.file.transfer.AppSettings.NOTIF_INIT;
                 contentText = mContext.getString(R.string.notif_init);
+                contentText = String.format(contentText, mDevice.getDisplayName(), mDevice.getLastKnownIp());
                 break;
             case android.olayinka.file.transfer.AppSettings.PROGRESS_REQUEST_AUTH:
                 notificationId = android.olayinka.file.transfer.AppSettings.NOTIF_REQUEST_AUTH;
@@ -414,8 +412,8 @@ public class A2PClient extends AsyncTask<Uri, String, Integer> {
                     notificationId = R.string.return_connection_lost;
                     break;
                 case AppSettings.RETURN_TRANSFER_SUCCESS:
-                    mNotifBuilder.setProgress(100, 100, false);
                     contentText = mContext.getString(R.string.return_transfer_success).split("\\|");
+                    contentText[1] = String.format(contentText[1], mProgressTask.readFiles, mTransfers.length);
                     notificationId = AppSettings.NOTIF_FILE_PROGRESS;
                     break;
                 case AppSettings.RETURN_AUTH_FAILED:
@@ -467,7 +465,7 @@ public class A2PClient extends AsyncTask<Uri, String, Integer> {
                     byte progress = mDataInputStream.readByte();
                     if (progress == android.olayinka.file.transfer.AppSettings.FILE_PROGRESS_START) {
                         currentIndex = mDataInputStream.readInt();
-                        currentFile = mFiles[currentIndex];
+                        currentFile = mTransfers[currentIndex].getFile();
                         mTransfers[currentIndex].setStatus(Transfer.Status.FAILED);
                     } else if (progress == android.olayinka.file.transfer.AppSettings.FILE_PROGRESS_END) {
                         readFiles++;
@@ -476,13 +474,13 @@ public class A2PClient extends AsyncTask<Uri, String, Integer> {
                             mTransferProvider.updateTransfer(mTransfers[currentIndex]);
                         }
                     } else if (progress == AbstractAppSettings.MESSAGE_FILE_TRANSFER_EXIT) {
-                        return 0;
+                        return AppSettings.RETURN_TRANSFER_SUCCESS;
                     } else
                         publishProgress(progress);
                 } catch (IOException e) {
                     e.printStackTrace();
                     if (readFiles == expectedFiles) {
-                        return 0;
+                        return AppSettings.RETURN_TRANSFER_SUCCESS;
                     }
                     return AbstractAppSettings.PROGRESS_FAILED;
                 } catch (NullPointerException ex) {

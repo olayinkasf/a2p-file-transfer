@@ -97,7 +97,6 @@ public class TransferAdapter extends CursorAdapter {
         Transfer transfer = SQLiteTransferProvider.transferFromContentValues(contentValues);
         Timestamp timestamp = new Timestamp(transfer.getTime());
         ImageView imageView = (ImageView) view.findViewById(R.id.icon);
-        File file = new File(transfer.getFileName());
         if (transfer.getTransferType().equals(Transfer.TransferType.RECEIVED.toString()))
             imageView.setImageResource(R.drawable.ic_subdirectory_arrow_right_black_36dp);
         else
@@ -106,9 +105,9 @@ public class TransferAdapter extends CursorAdapter {
         TextView deviceName = (TextView) view.findViewById(R.id.deviceName);
         TextView timeView = (TextView) view.findViewById(R.id.time);
 
-        nameView.setText(file.getName());
+        nameView.setText(transfer.getFile().getName());
         deviceName.setText("Unknown Device");
         timeView.setText(timestamp.toString());
-        view.setTag(R.id.contentUri, file);
+        view.setTag(R.id.contentUri, transfer.getFile());
     }
 }

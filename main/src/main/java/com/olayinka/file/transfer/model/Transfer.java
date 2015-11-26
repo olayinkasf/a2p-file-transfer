@@ -2,6 +2,8 @@ package com.olayinka.file.transfer.model;
 
 import com.olayinka.file.transfer.content.AbstractTransfer;
 
+import java.io.File;
+
 /**
  * Created by Olayinka on 11/2/2015.
  */
@@ -15,6 +17,7 @@ public class Transfer extends AbstractTransfer {
     private Long time;
     private Device device;
     private Short status;
+    private File file;
 
     public Long getId() {
         return id;
@@ -46,6 +49,7 @@ public class Transfer extends AbstractTransfer {
 
     public void setFileName(String fileName) {
         this.fileName = fileName;
+        this.file = new File(fileName);
     }
 
     public Long getExpectedSize() {
@@ -108,6 +112,10 @@ public class Transfer extends AbstractTransfer {
 
     public Device getDevice() {
         return device;
+    }
+
+    public File getFile() {
+        return file;
     }
 
     public void setDevice(Device device) {

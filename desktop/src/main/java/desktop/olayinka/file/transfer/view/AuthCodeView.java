@@ -1,8 +1,7 @@
 package desktop.olayinka.file.transfer.view;
 
+import com.olayinka.file.transfer.model.DeviceConnection;
 import desktop.olayinka.file.transfer.AppSettings;
-import com.olayinka.file.transfer.model.Device;
-import ripped.android.json.JSONObject;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,7 +16,7 @@ public class AuthCodeView extends JDialog {
 
     public static final String MESSAGE = "Enter the following code on your device %s";
 
-    public AuthCodeView(Frame frame, JSONObject object, boolean b) {
+    public AuthCodeView(Frame frame, DeviceConnection connection, boolean b) {
         super(frame, b);
         setLayout(new FlowLayout(FlowLayout.CENTER, 10, 10));
         setPreferredSize(AppSettings.CODE_DIALOG_DIMENS);
@@ -49,7 +48,7 @@ public class AuthCodeView extends JDialog {
         dimension = new Dimension(170, 30);
         messageLabel = new JLabel();
         messageLabel.setFont(new Font(messageLabel.getFont().getName(), Font.BOLD, 12));
-        messageLabel.setText(object.getString(Device.Columns.NAME));
+        messageLabel.setText(connection.getDevice().getDisplayName());
         messageLabel.setPreferredSize(dimension);
         messageLabel.setMinimumSize(dimension);
         messageLabel.setMaximumSize(dimension);
@@ -69,7 +68,7 @@ public class AuthCodeView extends JDialog {
         dimension = new Dimension(170, 30);
         messageLabel = new JLabel();
         messageLabel.setFont(new Font(messageLabel.getFont().getName(), Font.BOLD, 12));
-        messageLabel.setText(object.getString(Device.Columns.LAST_KNOWN_IP));
+        messageLabel.setText(connection.getDevice().getLastKnownIp());
         messageLabel.setPreferredSize(dimension);
         messageLabel.setMinimumSize(dimension);
         messageLabel.setMaximumSize(dimension);
@@ -79,7 +78,7 @@ public class AuthCodeView extends JDialog {
         dimension = new Dimension((int) AppSettings.CODE_DIALOG_DIMENS.getWidth() - 20, 100);
         JLabel codeLabel = new JLabel();
         codeLabel.setFont(new Font(messageLabel.getFont().getName(), Font.BOLD, 60));
-        codeLabel.setText(object.getString(Device.Columns.AUTH_HASH));
+        codeLabel.setText(connection.getCode());
         codeLabel.setHorizontalAlignment(JLabel.CENTER);
         codeLabel.setPreferredSize(dimension);
         codeLabel.setMinimumSize(dimension);
@@ -98,7 +97,7 @@ public class AuthCodeView extends JDialog {
             }
         });
 
-        setTitle(object.getString(Device.Columns.NAME));
+        setTitle(connection.getDevice().getDisplayName());
         setResizable(false);
         setBackground(AppSettings.APP_COLOR);
     }

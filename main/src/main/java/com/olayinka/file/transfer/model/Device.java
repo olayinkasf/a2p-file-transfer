@@ -201,6 +201,6 @@ public class Device extends AbstractDevice {
     public void prePersist() {
         lastAccess = System.currentTimeMillis();
         if (status == null) status = Status.ACTIVE;
-        if (displayName == null) displayName = "Unknown Device";
+        if (displayName == null) displayName = getName();
     }
 }

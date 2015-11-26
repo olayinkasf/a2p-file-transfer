@@ -2,6 +2,7 @@ package com.olayinka.file.transfer;
 
 import com.olayinka.file.transfer.content.AbstractAppContent;
 import com.olayinka.file.transfer.model.Device;
+import com.olayinka.file.transfer.model.DeviceConnection;
 import com.olayinka.file.transfer.model.DeviceProvider;
 import ripped.android.json.JSONObject;
 
@@ -11,32 +12,42 @@ import java.security.NoSuchAlgorithmException;
 /**
  * Created by Olayinka on 11/14/2015.
  */
-public abstract class AbstractDeviceConnectListener implements DeviceConnect.DeviceConnectListener {
+public abstract class AbstractDeviceConnectListener implements A2PClient.DeviceConnectListener {
 
     @Override
-    public Device registerDevice(JSONObject object) {
+    public DeviceConnection registerDevice(JSONObject object) {
 
+        //recover and remove requested authentication
         String authHash = object.optString(AbstractAppContent.DeviceColumns.AUTH_HASH, null);
         object.remove(Device.Columns.AUTH_HASH);
+
         Device device = Device.deviceFromJSONObject(object);
 
+        //object to return
+        object = new JSONObject();
+
+        //Get device provider from underlying context
+        DeviceProvider deviceProvider = getDeviceProvider();
+        if (deviceProvider == null) {
+            object.put(DeviceConnection.AUTH_RESULT, AbstractAppSettings.AUTH_ACCESS_DENIED);
+            return new DeviceConnection(object, device);
+        }
 
         //check if device is in database
-        DeviceProvider mDeviceProvider = getDeviceProvider();
-        if (!(mDeviceProvider.updateDevice(device) || mDeviceProvider.insertDevice(device))) {
+        if (!(deviceProvider.updateDevice(device) || deviceProvider.insertDevice(device))) {
             throw new RuntimeException("There is an unspeakable treachery here!!");
         }
 
         //if device has been deauthorized, exit
         if (Device.Status.BANNED.equals(device.getStatus())) {
-            object.put(AbstractAppSettings.AUTH_RESULT, AbstractAppSettings.AUTH_ACCESS_DENIED);
-            return device;
+            object.put(DeviceConnection.AUTH_RESULT, AbstractAppSettings.AUTH_ACCESS_DENIED);
+            return new DeviceConnection(object, device);
         }
 
         //if device is well authenticated
         if (device.getAuthHash() != null && authHash != null && authHash.equals(device.getAuthHash())) {
-            object.put(AbstractAppSettings.AUTH_RESULT, AbstractAppSettings.AUTH_SUCCESS);
-            return device;
+            object.put(DeviceConnection.AUTH_RESULT, AbstractAppSettings.AUTH_SUCCESS);
+            return new DeviceConnection(object, device);
         }
 
         //generate authentication code and persist
@@ -58,11 +69,11 @@ public abstract class AbstractDeviceConnectListener implements DeviceConnect.Dev
         }
 
         device.setAuthHash(authHash);
-        mDeviceProvider.updateDevice(device);
+        deviceProvider.updateDevice(device);
 
-        object.put(Device.Columns.AUTH_HASH, authCode);
-        object.put(AbstractAppSettings.AUTH_RESULT, AbstractAppSettings.AUTH_FAILED);
-        return device;
+        object.put(DeviceConnection.AUTH_CODE, authCode);
+        object.put(DeviceConnection.AUTH_RESULT, AbstractAppSettings.AUTH_FAILED);
+        return new DeviceConnection(object, device);
     }
 
     protected abstract DeviceProvider getDeviceProvider();
