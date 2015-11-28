@@ -19,7 +19,10 @@
 
 package com.olayinka.file.transfer;
 
+import com.olayinka.file.transfer.model.Device;
 import org.apache.commons.codec.binary.Hex;
+import ripped.android.json.JSONArray;
+import ripped.android.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
@@ -67,5 +70,23 @@ public class Utils {
         md.update(string.getBytes());
         byte[] digest = md.digest();
         return String.valueOf(Hex.encodeHex(digest));
+    }
+
+    public static JSONArray jsonArrayOfDevice(JSONObject mThisDevice) {
+        JSONArray ret = new JSONArray();
+        ret.put(mThisDevice.getString(Device.Columns.MAC_ADDRESS));
+        ret.put(mThisDevice.getString(Device.Columns.LAST_KNOWN_IP));
+        ret.put(mThisDevice.getString(Device.Columns.NAME));
+        ret.put(mThisDevice.getString(Device.Columns.DEVICE_TYPE));
+        return ret;
+    }
+
+    public static JSONObject jsonObjectOfDevice(JSONArray mThisDevice) {
+        JSONObject ret = new JSONObject();
+        ret.put(Device.Columns.MAC_ADDRESS, mThisDevice.getString(0));
+        ret.put(Device.Columns.LAST_KNOWN_IP, mThisDevice.getString(1));
+        ret.put(Device.Columns.NAME, mThisDevice.getString(2));
+        ret.put(Device.Columns.DEVICE_TYPE, mThisDevice.getString(3));
+        return ret;
     }
 }

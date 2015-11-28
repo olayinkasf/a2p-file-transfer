@@ -104,7 +104,7 @@ public class QRCodeActivity extends AppCompatActivity {
                 int qrDimens = Math.min(mDimens.widthPixels, mDimens.heightPixels);
                 BitMatrix result = null;
                 try {
-                    result = new MultiFormatWriter().encode(mThisDevice.toString(),
+                    result = new MultiFormatWriter().encode(Utils.jsonArrayOfDevice(mThisDevice).toString(),
                             BarcodeFormat.QR_CODE, qrDimens, qrDimens, null);
                 } catch (WriterException e) {
                     e.printStackTrace();

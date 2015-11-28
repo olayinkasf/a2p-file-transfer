@@ -34,6 +34,7 @@ import android.widget.ListView;
 import com.olayinka.file.transfer.R;
 import com.olayinka.file.transfer.model.Device;
 import com.olayinka.file.transfer.model.DeviceProvider;
+import ripped.android.json.JSONArray;
 import ripped.android.json.JSONObject;
 import zxing.barcode.scanning.IntentIntegrator;
 import zxing.barcode.scanning.IntentResult;
@@ -80,7 +81,7 @@ public class SelectDeviceActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         IntentResult scanResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
         if (scanResult != null && scanResult.getContents() != null) {
-            JSONObject object = new JSONObject(scanResult.getContents());
+            JSONObject object = Utils.jsonObjectOfDevice(new JSONArray(scanResult.getContents()));
             Device device = Device.deviceFromJSONObject(object);
             Utils.toast(this, String.format(getString(R.string.scanned_device), device.getName(), device.getLastKnownIp()));
             if (!(mDeviceProvider.updateDevice(device) || mDeviceProvider.insertDevice(device))) {

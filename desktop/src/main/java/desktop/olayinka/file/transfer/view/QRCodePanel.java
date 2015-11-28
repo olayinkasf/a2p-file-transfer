@@ -79,7 +79,7 @@ public class QRCodePanel extends JPanel {
             object.put(Device.Columns.NAME, mContext.getSystemProperties().getName());
             object.put(Device.Columns.DEVICE_TYPE, AppSettings.DEVICE_TYPE);
 
-            result = new MultiFormatWriter().encode(object.toString(),
+            result = new MultiFormatWriter().encode(Utils.jsonArrayOfDevice(object).toString(),
                     BarcodeFormat.QR_CODE, AppSettings.STATUS_BAR_HEIGHT - 20, AppSettings.STATUS_BAR_HEIGHT - 20, null);
             image = MatrixToImageWriter.toBufferedImage(result);
         } catch (IllegalArgumentException | WriterException | UnsupportedEncodingException | NoSuchAlgorithmException | SocketException e) {
